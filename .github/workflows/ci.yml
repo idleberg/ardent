@@ -15,12 +15,17 @@ jobs:
 
       - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - run: rustup component add rustfmt clippy
+      - name: Install Rust toolchain
+        run: rustup component add rustfmt clippy
 
-      - run: mise run fmt:check
+      - name: Check formatting
+        run: mise run fmt:check
 
-      - run: mise run lint
+      - name: Lint code
+        run: mise run lint
 
-      - run: mise run build
+      - name: Build project
+        run: mise run build
 
-      - run: mise run compare -- fixtures/
+      - name: Compare fixtures
+        run: mise run compare -- fixtures/
