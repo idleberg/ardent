@@ -1,0 +1,23 @@
+[package]
+name = "ardent"
+version = "0.1.0"
+edition = "2024"
+description = "Opinionated formatter for NSIS scripts"
+license = "MIT"
+
+[lib]
+name = "ardent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ardent"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+glob = "0.3"
+peg = "0.8"
+
+[profile.release]
+lto = true
+strip = true

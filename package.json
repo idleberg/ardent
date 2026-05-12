@@ -1,0 +1,7 @@
+{
+	"name": "@idleberg/ardent",
+	"private": true,
+	"devDependencies": {
+		"@types/bun": "^1.3.13"
+	}
+}
