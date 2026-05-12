@@ -4,13 +4,13 @@
 
 ## Installation
 
-### From crates.io
+### crates.io
 
 ```sh
 cargo install ardent
 ```
 
-### From source
+### Source
 
 ```sh
 git clone https://github.com/idleberg/ardent.git
@@ -109,6 +109,8 @@ match formatter.check(input).unwrap() {
 | `indent_size` | `usize` | `2` | Spaces per indent level (ignored when using tabs) |
 | `trim_empty_lines` | `bool` | `true` | Collapse consecutive blank lines and strip leading/trailing blanks |
 | `use_tabs` | `bool` | `true` | Indent with tabs instead of spaces |
+
+:white_check_mark: [Why defaulting to tabs is good for accessibility](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890)
 
 ## License
 
