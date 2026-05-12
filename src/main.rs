@@ -9,6 +9,9 @@ use glob::glob;
 
 use ardent::{DentOptions, EndOfLines, Formatter};
 
+mod logger;
+use logger::*;
+
 #[derive(Parser)]
 #[command(
 	name = "ardent",
@@ -111,7 +114,7 @@ fn resolve_files(patterns: &[String]) -> Vec<PathBuf> {
 				}
 			}
 			Err(e) => {
-				eprintln!("Warning: invalid glob pattern '{}': {}", pattern, e);
+				logger_warn!("invalid glob pattern '{}': {}", pattern, e);
 			}
 		}
 	}
@@ -131,11 +134,11 @@ fn run_format(
 	debug: bool,
 ) -> ExitCode {
 	if debug {
-		eprintln!("Debug: args={:?}, options={:?}", patterns, formatting);
+		logger_debug!("args={:?}, options={:?}", patterns, formatting);
 	}
 
 	if !formatting.use_spaces && formatting.indent_size != 2 {
-		eprintln!("Warning: the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
+		logger_warn!("the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
 	if patterns.is_empty() {
@@ -149,20 +152,20 @@ fn run_format(
 
 	let files = resolve_files(patterns);
 	if files.is_empty() {
-		eprintln!("Error: no valid input files provided, exiting.");
+		logger_error!("no valid input files provided, exiting.");
 		return ExitCode::from(1);
 	}
 
 	let formatter = match Formatter::new(dent_options_from(formatting)) {
 		Ok(f) => f,
 		Err(e) => {
-			eprintln!("Error: {e}");
+			logger_error!("{e}");
 			return ExitCode::from(1);
 		}
 	};
 
 	if write {
-		eprintln!(
+		logger_start!(
 			"Formatting {} {}...",
 			files.len(),
 			if files.len() == 1 { "file" } else { "files" }
@@ -173,15 +176,15 @@ fn run_format(
 
 	for file in &files {
 		if !is_nsis_file(file) {
-			eprintln!(
-				"Warning: {} is not an NSIS script, skipping.",
-				file.display()
+			logger_warn!(
+				"{} is not an NSIS script, skipping.",
+				blue(&file.display())
 			);
 			continue;
 		}
 
 		if !file.exists() {
-			eprintln!("Warning: {} does not exist, skipping.", file.display());
+			logger_warn!("{} does not exist, skipping.", blue(&file.display()));
 			continue;
 		}
 
@@ -189,7 +192,7 @@ fn run_format(
 		let raw_contents = match fs::read_to_string(file) {
 			Ok(c) => c,
 			Err(e) => {
-				eprintln!("Error reading {}: {e}", file.display());
+				logger_error!("reading {}: {e}", blue(&file.display()));
 				continue;
 			}
 		};
@@ -197,7 +200,7 @@ fn run_format(
 		let result = match formatter.check(&raw_contents) {
 			Ok(r) => r,
 			Err(e) => {
-				eprintln!("Error parsing {}: {e}", file.display());
+				logger_error!("parsing {}: {e}", blue(&file.display()));
 				continue;
 			}
 		};
@@ -207,12 +210,12 @@ fn run_format(
 		if write {
 			if let Some(formatted) = result {
 				if let Err(e) = fs::write(file, &formatted) {
-					eprintln!("Error writing {}: {e}", file.display());
+					logger_error!("writing {}: {e}", blue(&file.display()));
 					continue;
 				}
-				eprintln!("{} formatted ({}ms)", file.display(), duration);
+				logger_info!("{} formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
 			} else {
-				eprintln!("{} already formatted ({}ms)", file.display(), duration);
+				logger_info!("{} already formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
 			}
 		} else {
 			let output = result.as_deref().unwrap_or(&raw_contents);
@@ -222,7 +225,7 @@ fn run_format(
 
 	if write {
 		let outer_duration = outer_start.elapsed().as_millis();
-		eprintln!("Completed in {}ms.", outer_duration);
+		logger_success!("Completed in {}ms.", outer_duration);
 	}
 
 	ExitCode::SUCCESS
@@ -235,11 +238,11 @@ fn run_check(
 	debug: bool,
 ) -> ExitCode {
 	if debug {
-		eprintln!("Debug: args={:?}, options={:?}", patterns, formatting);
+		logger_debug!("args={:?}, options={:?}", patterns, formatting);
 	}
 
 	if !formatting.use_spaces && formatting.indent_size != 2 {
-		eprintln!("Warning: the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
+		logger_warn!("the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
 	if patterns.is_empty() {
@@ -253,19 +256,19 @@ fn run_check(
 
 	let files = resolve_files(patterns);
 	if files.is_empty() {
-		eprintln!("Error: no valid input files provided, exiting.");
+		logger_error!("no valid input files provided, exiting.");
 		return ExitCode::from(2);
 	}
 
 	let formatter = match Formatter::new(dent_options_from(formatting)) {
 		Ok(f) => f,
 		Err(e) => {
-			eprintln!("Error: {e}");
+			logger_error!("{e}");
 			return ExitCode::from(1);
 		}
 	};
 
-	eprintln!(
+	logger_start!(
 		"Checking {} {}...",
 		files.len(),
 		if files.len() == 1 { "file" } else { "files" }
@@ -276,15 +279,15 @@ fn run_check(
 
 	for file in &files {
 		if !is_nsis_file(file) {
-			eprintln!(
-				"Warning: {} is not an NSIS script, skipping.",
-				file.display()
+			logger_warn!(
+				"{} is not an NSIS script, skipping.",
+				blue(&file.display())
 			);
 			continue;
 		}
 
 		if !file.exists() {
-			eprintln!("Warning: {} does not exist, skipping.", file.display());
+			logger_warn!("{} does not exist, skipping.", blue(&file.display()));
 			continue;
 		}
 
@@ -292,7 +295,7 @@ fn run_check(
 		let raw_contents = match fs::read_to_string(file) {
 			Ok(c) => c,
 			Err(e) => {
-				eprintln!("Error reading {}: {e}", file.display());
+				logger_error!("reading {}: {e}", blue(&file.display()));
 				continue;
 			}
 		};
@@ -300,7 +303,7 @@ fn run_check(
 		let result = match formatter.check(&raw_contents) {
 			Ok(r) => r,
 			Err(e) => {
-				eprintln!("Error parsing {}: {e}", file.display());
+				logger_error!("parsing {}: {e}", blue(&file.display()));
 				continue;
 			}
 		};
@@ -311,20 +314,20 @@ fn run_check(
 			drifted.push(file.clone());
 			if write {
 				if let Err(e) = fs::write(file, &formatted) {
-					eprintln!("Error writing {}: {e}", file.display());
+					logger_error!("writing {}: {e}", blue(&file.display()));
 					continue;
 				}
-				eprintln!("{} formatted ({}ms)", file.display(), duration);
+				logger_info!("{} formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
 			} else {
-				eprintln!("Warning: {} has issues ({}ms)", file.display(), duration);
+				logger_warn!("{} has issues {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
 			}
 		} else {
-			eprintln!("{} already formatted ({}ms)", file.display(), duration);
+			logger_info!("{} already formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
 		}
 	}
 
 	let outer_duration = outer_start.elapsed().as_millis();
-	eprintln!("Completed in {}ms.", outer_duration);
+	logger_success!("Completed in {}ms.", outer_duration);
 
 	if !drifted.is_empty() {
 		ExitCode::from(1)
