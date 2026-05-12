@@ -124,6 +124,24 @@ match formatter.check(input).unwrap() {
 
 :white_check_mark: [Why defaulting to tabs is good for accessibility](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890)
 
+## Benchmark
+
+```shell
+Benchmark 1: ardent check fixtures/bigtest.nsi
+  Time (mean ± σ):       2.3 ms ±   0.8 ms    [User: 1.2 ms, System: 0.7 ms]
+  Range (min … max):     1.5 ms …  15.9 ms    500 runs
+ 
+Benchmark 2: dent check fixtures/bigtest.nsi
+  Time (mean ± σ):      62.8 ms ±   1.0 ms    [User: 55.6 ms, System: 10.4 ms]
+  Range (min … max):    61.6 ms …  65.8 ms    44 runs
+ 
+  Warning: Ignoring non-zero exit code.
+ 
+Summary
+  ardent check fixtures/bigtest.nsi ran
+   26.78 ± 9.17 times faster than dent check fixtures/bigtest.nsi
+```
+
 ## License
 
 This work is licensed under [The MIT License](LICENSE).
