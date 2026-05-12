@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact-name: linux-x64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact-name: linux-arm64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            artifact-name: darwin-x64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            artifact-name: darwin-arm64
+          - target: x86_64-pc-windows-gnu
+            os: ubuntu-latest
+            artifact-name: windows-x64
+          - target: aarch64-pc-windows-gnullvm
+            os: ubuntu-latest
+            artifact-name: windows-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        if: matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu'
+        run: cargo install cross
+
+      - name: Build (cross)
+        if: matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu'
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Build (native)
+        if: matrix.os != 'ubuntu-latest' || matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Create zip
+        run: |
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            BIN=ardent.exe
+          else
+            BIN=ardent
+          fi
+          zip "ardent-${{ steps.version.outputs.VERSION }}-${{ matrix.artifact-name }}.zip" \
+            "target/${{ matrix.target }}/release/${BIN}" LICENSE
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ardent-${{ matrix.artifact-name }}
+          path: ardent-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          merge-multiple: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          files: ardent-*.zip
