@@ -40,10 +40,9 @@ pub struct Formatter {
 
 impl Formatter {
 	pub fn new(options: DentOptions) -> Result<Self, String> {
-		if !options.use_tabs
-			&& options.indent_size == 0 {
-				return Err("The indent_size option expects a positive integer".to_string());
-			}
+		if !options.use_tabs && options.indent_size == 0 {
+			return Err("The indent_size option expects a positive integer".to_string());
+		}
 		Ok(Self { options })
 	}
 

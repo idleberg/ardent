@@ -170,20 +170,22 @@ fn normalize_arg(arg: &str, instr_params: Option<&HashMap<&str, &str>>) -> Strin
 	let lower = arg.to_lowercase();
 
 	if let Some(params) = instr_params
-		&& let Some(&canonical) = params.get(lower.as_str()) {
-			return canonical.to_string();
-		}
+		&& let Some(&canonical) = params.get(lower.as_str())
+	{
+		return canonical.to_string();
+	}
 	if let Some(&canonical) = GLOBAL_PARAMETERS.get(lower.as_str()) {
 		return canonical.to_string();
 	}
 
 	if let Some(eq_idx) = arg.find('=')
-		&& eq_idx > 0 {
-			let prefix_lower = &lower[..=eq_idx];
-			if let Some(&canonical) = GLOBAL_PARAMETER_PREFIXES.get(prefix_lower) {
-				return format!("{}{}", canonical, &arg[eq_idx + 1..]);
-			}
+		&& eq_idx > 0
+	{
+		let prefix_lower = &lower[..=eq_idx];
+		if let Some(&canonical) = GLOBAL_PARAMETER_PREFIXES.get(prefix_lower) {
+			return format!("{}{}", canonical, &arg[eq_idx + 1..]);
 		}
+	}
 
 	arg.to_string()
 }
@@ -209,13 +211,16 @@ fn split_preserving_groups(arg: &str, sep: char) -> Vec<String> {
 	let mut i = 0;
 
 	while i < chars.len() {
-		if chars[i] == '$' && i + 1 < chars.len() && chars[i + 1] == '{'
-			&& let Some(end) = arg[i + 2..].find('}') {
-				let group = &arg[i..i + 2 + end + 1];
-				current.push_str(group);
-				i += 2 + end + 1;
-				continue;
-			}
+		if chars[i] == '$'
+			&& i + 1 < chars.len()
+			&& chars[i + 1] == '{'
+			&& let Some(end) = arg[i + 2..].find('}')
+		{
+			let group = &arg[i..i + 2 + end + 1];
+			current.push_str(group);
+			i += 2 + end + 1;
+			continue;
+		}
 
 		if chars[i] == sep {
 			if !current.is_empty() {
@@ -271,14 +276,17 @@ fn tokenize_arithmetic(arg: &str) -> Vec<String> {
 	let mut i = 0;
 
 	while i < chars.len() {
-		if chars[i] == '$' && i + 1 < chars.len() && chars[i + 1] == '{'
-			&& let Some(end) = arg[i + 2..].find('}') {
-				let group = &arg[i..i + 2 + end + 1];
-				current.push_str(group);
-				i += 2 + end + 1;
-				last_was_op = false;
-				continue;
-			}
+		if chars[i] == '$'
+			&& i + 1 < chars.len()
+			&& chars[i + 1] == '{'
+			&& let Some(end) = arg[i + 2..].find('}')
+		{
+			let group = &arg[i..i + 2 + end + 1];
+			current.push_str(group);
+			i += 2 + end + 1;
+			last_was_op = false;
+			continue;
+		}
 
 		if i + 1 < chars.len() {
 			let two: String = chars[i..=i + 1].iter().collect();
@@ -416,29 +424,31 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 		let last_is_blank = result.last().is_some_and(|n| matches!(n, CSTNode::Blank));
 
 		if let Some(prev) = prev_non_blank
-			&& !last_is_blank && !matches!(node, CSTNode::Blank) {
-				if is_block_open(node)
-					&& !is_block_open(prev)
-					&& !matches!(prev, CSTNode::Comment { .. })
+			&& !last_is_blank
+			&& !matches!(node, CSTNode::Blank)
+		{
+			if is_block_open(node)
+				&& !is_block_open(prev)
+				&& !matches!(prev, CSTNode::Comment { .. })
+			{
+				result.push(CSTNode::Blank);
+			} else if matches!(node, CSTNode::Comment { .. })
+				&& !is_block_open(prev)
+				&& !matches!(prev, CSTNode::Comment { .. })
+			{
+				let mut j = i + 1;
+				while j < nodes.len()
+					&& matches!(nodes[j], CSTNode::Blank | CSTNode::Comment { .. })
 				{
-					result.push(CSTNode::Blank);
-				} else if matches!(node, CSTNode::Comment { .. })
-					&& !is_block_open(prev)
-					&& !matches!(prev, CSTNode::Comment { .. })
-				{
-					let mut j = i + 1;
-					while j < nodes.len()
-						&& matches!(nodes[j], CSTNode::Blank | CSTNode::Comment { .. })
-					{
-						j += 1;
-					}
-					if j < nodes.len() && is_block_open(&nodes[j]) {
-						result.push(CSTNode::Blank);
-					}
-				} else if is_block_close(prev) && !is_block_close(node) && !is_block_open(node) {
+					j += 1;
+				}
+				if j < nodes.len() && is_block_open(&nodes[j]) {
 					result.push(CSTNode::Blank);
 				}
+			} else if is_block_close(prev) && !is_block_close(node) && !is_block_open(node) {
+				result.push(CSTNode::Blank);
 			}
+		}
 
 		result.push(node.clone());
 		if !matches!(node, CSTNode::Blank) {
