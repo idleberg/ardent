@@ -29,7 +29,7 @@ jobs:
           - target: x86_64-pc-windows-gnu
             os: ubuntu-latest
             artifact-name: windows-x64
-          - target: aarch64-pc-windows-gnullvm
+          - target: aarch64-pc-windows-gnu
             os: ubuntu-latest
             artifact-name: windows-arm64
     runs-on: ${{ matrix.os }}
