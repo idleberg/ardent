@@ -1,5 +1,9 @@
 # ardent
 
+[![License](https://img.shields.io/github/license/idleberg/ardent?color=blue&style=for-the-badge)](https://github.com/idleberg/ardent/blob/main/LICENSE)
+![Version](https://img.shields.io/crates/v/ardent?style=for-the-badge)
+[![CI](https://img.shields.io/github/actions/workflow/status/idleberg/ardent/ci.yml?style=for-the-badge)](https://github.com/idleberg/ardent/actions)
+
 > An opinionated code formatter for NSIS scripts
 
 ## Installation
