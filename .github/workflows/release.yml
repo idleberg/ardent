@@ -20,6 +20,7 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             artifact-name: linux-arm64
+            use-cross: true
           - target: x86_64-apple-darwin
             os: macos-latest
             artifact-name: darwin-x64
@@ -29,9 +30,7 @@ jobs:
           - target: x86_64-pc-windows-gnu
             os: ubuntu-latest
             artifact-name: windows-x64
-          - target: aarch64-pc-windows-gnu
-            os: ubuntu-latest
-            artifact-name: windows-arm64
+            use-cross: true
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -39,6 +38,7 @@ jobs:
       - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Install Rust toolchain
+        if: "!matrix.use-cross"
         run: rustup target add ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
@@ -46,15 +46,15 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Install cross-compilation tools
-        if: matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu'
+        if: matrix.use-cross
         run: cargo install cross
 
       - name: Build (cross)
-        if: matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu'
+        if: matrix.use-cross
         run: cross build --release --target ${{ matrix.target }}
 
       - name: Build (native)
-        if: matrix.os != 'ubuntu-latest' || matrix.target == 'x86_64-unknown-linux-gnu'
+        if: "!matrix.use-cross"
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Get version
