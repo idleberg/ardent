@@ -176,10 +176,7 @@ fn run_format(
 
 	for file in &files {
 		if !is_nsis_file(file) {
-			logger_warn!(
-				"{} is not an NSIS script, skipping.",
-				blue(&file.display())
-			);
+			logger_warn!("{} is not an NSIS script, skipping.", blue(&file.display()));
 			continue;
 		}
 
@@ -213,9 +210,17 @@ fn run_format(
 					logger_error!("writing {}: {e}", blue(&file.display()));
 					continue;
 				}
-				logger_info!("{} formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
+				logger_info!(
+					"{} formatted {}",
+					blue(&file.display()),
+					dim(&format_args!("({}ms)", duration))
+				);
 			} else {
-				logger_info!("{} already formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
+				logger_info!(
+					"{} already formatted {}",
+					blue(&file.display()),
+					dim(&format_args!("({}ms)", duration))
+				);
 			}
 		} else {
 			let output = result.as_deref().unwrap_or(&raw_contents);
@@ -279,10 +284,7 @@ fn run_check(
 
 	for file in &files {
 		if !is_nsis_file(file) {
-			logger_warn!(
-				"{} is not an NSIS script, skipping.",
-				blue(&file.display())
-			);
+			logger_warn!("{} is not an NSIS script, skipping.", blue(&file.display()));
 			continue;
 		}
 
@@ -317,12 +319,24 @@ fn run_check(
 					logger_error!("writing {}: {e}", blue(&file.display()));
 					continue;
 				}
-				logger_info!("{} formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
+				logger_info!(
+					"{} formatted {}",
+					blue(&file.display()),
+					dim(&format_args!("({}ms)", duration))
+				);
 			} else {
-				logger_warn!("{} has issues {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
+				logger_warn!(
+					"{} has issues {}",
+					blue(&file.display()),
+					dim(&format_args!("({}ms)", duration))
+				);
 			}
 		} else {
-			logger_info!("{} already formatted {}", blue(&file.display()), dim(&format_args!("({}ms)", duration)));
+			logger_info!(
+				"{} already formatted {}",
+				blue(&file.display()),
+				dim(&format_args!("({}ms)", duration))
+			);
 		}
 	}
 
