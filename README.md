@@ -6,6 +6,14 @@
 
 > An opinionated code formatter for NSIS scripts
 
+## Description
+
+This is a Rust implementation of [`dent-cli`](https://www.npmjs.org/package/@nsis/dent-cli), a NodeJS-based formatting tool for NSIS scripts.
+
+> **"ar"** for **R**ust, **"dent"** as for the formatter. Nevermind!
+
+It aims to be fully compatible while making distribution easier for people outside the NodeJS ecosystem. 
+
 ## Installation
 
 ### crates.io
