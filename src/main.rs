@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::Instant;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use glob::glob;
 
 use ardent::{DentOptions, EndOfLines, Formatter};
@@ -138,6 +138,15 @@ fn run_format(
 		eprintln!("Warning: the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
+	if patterns.is_empty() {
+		Cli::command()
+			.find_subcommand_mut("format")
+			.unwrap()
+			.print_help()
+			.unwrap();
+		return ExitCode::from(2);
+	}
+
 	let files = resolve_files(patterns);
 	if files.is_empty() {
 		eprintln!("Error: no valid input files provided, exiting.");
@@ -231,6 +240,15 @@ fn run_check(
 
 	if !formatting.use_spaces && formatting.indent_size != 2 {
 		eprintln!("Warning: the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
+	}
+
+	if patterns.is_empty() {
+		Cli::command()
+			.find_subcommand_mut("check")
+			.unwrap()
+			.print_help()
+			.unwrap();
+		return ExitCode::from(2);
 	}
 
 	let files = resolve_files(patterns);
@@ -330,8 +348,8 @@ fn main() -> ExitCode {
 			formatting,
 		}) => run_check(&files, write, &formatting, cli.debug),
 		None => {
-			let _ = Cli::try_parse_from(["ardent", "--help"]);
-			ExitCode::SUCCESS
+			Cli::command().print_help().unwrap();
+			ExitCode::from(2)
 		}
 	}
 }
