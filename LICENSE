@@ -1,115 +1,21 @@
-# ardent
+The MIT License (MIT)
 
-> An opinionated code formatter for NSIS scripts
+Copyright (c) 2026 Jan T. Sott
 
-## Installation
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-### From crates.io
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-```sh
-cargo install ardent
-```
-
-### From source
-
-```sh
-git clone https://github.com/idleberg/ardent.git
-cd ardent
-cargo build --release
-```
-
-The binary is at `target/release/ardent`.
-
-## CLI Usage
-
-```
-ardent [OPTIONS] [COMMAND]
-
-Commands:
-  format  Format NSIS scripts
-  check   Check if NSIS scripts are formatted correctly
-
-Options:
-  -D, --debug    Print debug messages
-  -h, --help     Print help
-  -V, --version  Print version
-```
-
-### Format
-
-Formats one or more `.nsi` / `.nsh` files.
-
-```sh
-# Print formatted output to stdout
-ardent format installer.nsi
-
-# Edit files in-place
-ardent format --write src/**/*.nsi
-```
-
-See `ardent format --help` for available options.
-
-### Check
-
-Checks whether files are already formatted.
-
-```sh
-# Check only (reports drift)
-ardent check src/**/*.nsi
-
-# Check and auto-fix (still exits 1 if drift was found)
-ardent check --write src/**/*.nsi
-```
-
-See `ardent check --help` for available options.
-
-## Library Usage
-
-### Formatting
-
-```rust
-use ardent::{DentOptions, EndOfLines, Formatter};
-
-let formatter = Formatter::new(DentOptions {
-    end_of_lines: Some(EndOfLines::Lf),
-    use_tabs: true,
-    indent_size: 2,
-    trim_empty_lines: true,
-}).expect("valid options");
-
-let input = r#"section "My Section"
-detailprint "Hello"
-sectionend
-"#;
-
-let output = formatter.format(input).expect("valid NSIS");
-assert_eq!(output, "Section \"My Section\"\n\tDetailPrint \"Hello\"\nSectionEnd\n");
-```
-
-### Checking
-
-Returns `None` if the input is already formatted, or `Some(formatted)` if it needs changes.
-
-```rust
-use ardent::{DentOptions, Formatter};
-
-let formatter = Formatter::new(DentOptions::default()).unwrap();
-
-match formatter.check(input).unwrap() {
-    None => println!("Already formatted"),
-    Some(formatted) => println!("Needs formatting"),
-}
-```
-
-### Options
-
-| Field              | Type                 | Default              | Description                                                        |
-| ------------------ | -------------------- | -------------------- | ------------------------------------------------------------------ |
-| `end_of_lines`     | `Option<EndOfLines>` | `None` (auto-detect) | Force CRLF or LF line endings                                      |
-| `indent_size`      | `usize`              | `2`                  | Spaces per indent level (ignored when using tabs)                  |
-| `trim_empty_lines` | `bool`               | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks |
-| `use_tabs`         | `bool`               | `true`               | Indent with tabs instead of spaces                                 |
-
-## License
-
-This work is licensed under [The MIT License](LICENSE).
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
