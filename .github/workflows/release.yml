@@ -68,7 +68,7 @@ jobs:
           else
             BIN=ardent
           fi
-          zip "ardent-${{ steps.version.outputs.VERSION }}-${{ matrix.artifact-name }}.zip" \
+          zip --junk-paths "ardent-${{ steps.version.outputs.VERSION }}-${{ matrix.artifact-name }}.zip" \
             "target/${{ matrix.target }}/release/${BIN}" LICENSE
 
       - name: Upload artifact
