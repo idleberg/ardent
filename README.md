@@ -10,7 +10,7 @@
 
 This is a Rust implementation of [`dent-cli`](https://www.npmjs.org/package/@nsis/dent-cli), a NodeJS-based formatting tool for NSIS scripts.
 
-> **"ar"** for **R**ust, **"dent"** as for the formatter. Nevermind!
+> **"ar"** for **R**ust, **"dent"** as for the formatter. Well, nevermind!
 
 It aims to be fully compatible while making distribution easier for people outside the NodeJS ecosystem.
 
