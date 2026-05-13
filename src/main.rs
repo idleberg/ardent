@@ -74,8 +74,8 @@ struct FormattingArgs {
 	#[arg(short = 's', long, help = "Indent with spaces instead of tabs")]
 	use_spaces: bool,
 
-	#[arg(short, long, default_value_t = true, help = "Trim empty lines")]
-	trim: bool,
+	#[arg(short = 'T', long = "no-trim", help = "Do not trim empty lines")]
+	no_trim: bool,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -99,7 +99,7 @@ fn dent_options_from(args: &FormattingArgs) -> DentOptions {
 			EolArg::Lf => EndOfLines::Lf,
 		})),
 		indent_size: args.indent_size,
-		trim_empty_lines: args.trim,
+		trim_empty_lines: !args.no_trim,
 		use_tabs: !args.use_spaces,
 	}
 }
