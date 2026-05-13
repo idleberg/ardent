@@ -127,17 +127,17 @@ match formatter.check(input).unwrap() {
 ## Benchmark
 
 ```shell
-Benchmark 1: ardent check fixtures/bigtest.nsi
+Benchmark 1: ardent check Examples/bigtest.nsi
   Time (mean ± σ):       2.1 ms ±   0.7 ms    [User: 1.2 ms, System: 0.6 ms]
   Range (min … max):     1.5 ms …  11.8 ms    488 runs
 
-Benchmark 2: dent check fixtures/bigtest.nsi
+Benchmark 2: dent check Examples/bigtest.nsi
   Time (mean ± σ):      62.8 ms ±   3.1 ms    [User: 55.5 ms, System: 10.1 ms]
   Range (min … max):    61.1 ms …  82.5 ms    45 runs
 
 Summary
-  ardent check fixtures/bigtest.nsi ran
-   29.22 ± 9.26 times faster than dent check fixtures/bigtest.nsi
+  ardent check Examples/bigtest.nsi ran
+   29.22 ± 9.26 times faster than dent check Examples/bigtest.nsi
 ```
 
 ## License
