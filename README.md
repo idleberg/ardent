@@ -16,7 +16,7 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
-### crates.io
+### Cargo
 
 ```sh
 cargo install ardent
