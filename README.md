@@ -1,7 +1,7 @@
 # ardent
 
-[![License](https://img.shields.io/github/license/idleberg/ardent?color=blue&style=for-the-badge)](https://github.com/idleberg/ardent/blob/main/LICENSE)
-[![Version](https://img.shields.io/crates/v/ardent?style=for-the-badge)](https://crates.io/crates/ardent)
+![Crates.io License](https://img.shields.io/crates/l/ardent?style=for-the-badge)
+[![Crates.io Version](https://img.shields.io/crates/v/ardent?style=for-the-badge)](https://crates.io/crates/ardent)
 [![CI](https://img.shields.io/github/actions/workflow/status/idleberg/ardent/ci.yml?style=for-the-badge)](https://github.com/idleberg/ardent/actions)
 
 > An opinionated code formatter for NSIS scripts
