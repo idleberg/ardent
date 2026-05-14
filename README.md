@@ -22,6 +22,19 @@ It aims to be fully compatible while making distribution easier for people outsi
 cargo install ardent
 ```
 
+### Scoop
+
+```sh
+scoop bucket add nsis https://github.com/NSIS-Dev/scoop-nsis
+scoop install nsis/ardent
+```
+
+### Homebrew
+
+```sh
+brew install idleberg/asahi/ardent
+```
+
 ### Source
 
 ```sh
