@@ -1,33 +1,52 @@
 use std::collections::HashSet;
 use std::sync::LazyLock;
 
+/// The style of a comment in an NSIS script.
 #[derive(Debug, Clone, PartialEq)]
 pub enum CommentStyle {
+	/// A `#`-prefixed line comment.
 	Hash,
+	/// A `;`-prefixed line comment.
 	Semicolon,
+	/// A `/* ... */` block comment.
 	Block,
 }
 
+/// A trailing comment attached to an instruction or label.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TrailingComment {
+	/// The comment style (`#` or `;`).
 	pub style: CommentStyle,
+	/// The comment text (without the leading marker).
 	pub value: String,
 }
 
+/// A node in the concrete syntax tree produced by the parser.
 #[derive(Debug, Clone, PartialEq)]
 pub enum CSTNode {
+	/// An empty line.
 	Blank,
+	/// A standalone comment line.
 	Comment {
+		/// The comment style.
 		style: CommentStyle,
+		/// The comment text.
 		value: String,
 	},
+	/// An NSIS instruction (e.g. `Section`, `DetailPrint`, `!define`).
 	Instruction {
+		/// The instruction keyword as it appeared in source.
 		keyword: String,
+		/// The arguments following the keyword.
 		args: Vec<String>,
+		/// An optional trailing comment on the same line.
 		comment: Option<TrailingComment>,
 	},
+	/// A label definition (e.g. `myLabel:`).
 	Label {
+		/// The label name (without the trailing colon).
 		name: String,
+		/// An optional trailing comment on the same line.
 		comment: Option<TrailingComment>,
 	},
 }
@@ -467,6 +486,7 @@ peg::parser! {
 	}
 }
 
+/// Strips a leading BOM and joins backslash-continued lines.
 pub fn preprocess(input: &str) -> String {
 	let without_bom = input.strip_prefix('\u{FEFF}').unwrap_or(input);
 	let mut result = String::with_capacity(without_bom.len());
@@ -501,6 +521,7 @@ pub fn preprocess(input: &str) -> String {
 	result
 }
 
+/// Parses an NSIS script into a list of CST nodes.
 pub fn parse(input: &str) -> Result<Vec<CSTNode>, String> {
 	let preprocessed = preprocess(input);
 	nsis_parser::script(&preprocessed).map_err(|e| format!("Parse error: {e}"))

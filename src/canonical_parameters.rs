@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+/// Maps lowercased global parameters (e.g. `/silent`) to their canonical casing.
 pub static GLOBAL_PARAMETERS: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
 	HashMap::from([
 		("/silent", "/SILENT"),
@@ -65,6 +66,7 @@ pub static GLOBAL_PARAMETERS: LazyLock<HashMap<&'static str, &'static str>> = La
 	])
 });
 
+/// Maps lowercased global parameter prefixes (e.g. `/lang=`) to their canonical casing.
 pub static GLOBAL_PARAMETER_PREFIXES: LazyLock<HashMap<&'static str, &'static str>> =
 	LazyLock::new(|| {
 		HashMap::from([
@@ -78,6 +80,7 @@ pub static GLOBAL_PARAMETER_PREFIXES: LazyLock<HashMap<&'static str, &'static st
 		])
 	});
 
+/// Maps lowercased instruction names to their per-instruction parameter casing tables.
 pub static INSTRUCTION_PARAMETERS: LazyLock<
 	HashMap<&'static str, HashMap<&'static str, &'static str>>,
 > = LazyLock::new(|| {

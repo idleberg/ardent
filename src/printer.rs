@@ -8,13 +8,19 @@ use crate::canonical_parameters::{
 use crate::parser::{CSTNode, CommentStyle, TrailingComment};
 use crate::rules::{CLOSE, CLOSE_AFTER, MID, OPEN};
 
+/// Options controlling the printer output.
 pub struct PrinterOptions {
+	/// Whether to indent with tabs.
 	pub use_tabs: bool,
+	/// Number of spaces per indent level (ignored when `use_tabs` is `true`).
 	pub indent_size: usize,
+	/// Whether to collapse consecutive blank lines and strip leading/trailing blanks.
 	pub trim_empty_lines: bool,
+	/// The line ending string to use.
 	pub eol: String,
 }
 
+/// Renders a list of CST nodes into a formatted NSIS script string.
 pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 	let mut level: usize = 0;
 	let mut stack: Vec<usize> = Vec::new();

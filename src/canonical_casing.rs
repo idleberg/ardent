@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+/// Maps lowercased NSIS instruction names to their canonical casing.
 pub static CANONICAL_CASING: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
 	HashMap::from([
 		// Compiler commands (all lowercase by convention)

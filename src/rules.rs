@@ -5,6 +5,7 @@ fn lower_set(keywords: &[&str]) -> HashSet<String> {
 	keywords.iter().map(|k| k.to_lowercase()).collect()
 }
 
+/// Keywords that open a new indentation block (e.g. `Section`, `Function`, `!if`).
 pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!if",
@@ -39,6 +40,7 @@ pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	])
 });
 
+/// Keywords that close an indentation block (e.g. `SectionEnd`, `FunctionEnd`, `!endif`).
 pub static CLOSE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!endif",
@@ -60,6 +62,7 @@ pub static CLOSE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	])
 });
 
+/// Keywords that sit at the opener's indent level within a block (e.g. `!else`, `${ElseIf}`).
 pub static MID: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!else",
@@ -77,4 +80,5 @@ pub static MID: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	])
 });
 
+/// Keywords that close the current block after being printed at the current indent level.
 pub static CLOSE_AFTER: LazyLock<HashSet<String>> = LazyLock::new(|| lower_set(&["${Break}"]));
