@@ -6,6 +6,11 @@ authors = ["Jan T. Sott"]
 repository = "https://github.com/idleberg/ardent"
 license = "MIT"
 edition = "2024"
+readme = "README.md"
+documentation = "https://docs.rs/ardent"
+homepage = "https://github.com/idleberg/ardent"
+keywords = ["nsis", "formatter", "linter"]
+categories = ["command-line-utilities", "development-tools"]
 
 [lib]
 name = "ardent"
