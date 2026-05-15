@@ -1,5 +1,5 @@
 [pre-commit.commands.format]
-glob = "*.{rs}"
+glob = "*.rs"
 run = "mise run fmt:check"
 stage_fixed = true
 
