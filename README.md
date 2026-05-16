@@ -91,9 +91,9 @@ See `ardent check --help` for available options.
 ### Formatting
 
 ```rust
-use ardent::{DentOptions, EndOfLines, Formatter};
+use ardent::{FormatterOptions, EndOfLines, Formatter};
 
-let formatter = Formatter::new(DentOptions {
+let formatter = Formatter::new(FormatterOptions {
     end_of_lines: Some(EndOfLines::Lf),
     use_tabs: true,
     indent_size: 2,
@@ -114,9 +114,9 @@ assert_eq!(output, "Section \"My Section\"\n\tDetailPrint \"Hello\"\nSectionEnd\
 Returns `None` if the input is already formatted, or `Some(formatted)` if it needs changes.
 
 ```rust
-use ardent::{DentOptions, Formatter};
+use ardent::{FormatterOptions, Formatter};
 
-let formatter = Formatter::new(DentOptions::default()).unwrap();
+let formatter = Formatter::new(FormatterOptions::default()).unwrap();
 
 match formatter.check(input).unwrap() {
     None => println!("Already formatted"),

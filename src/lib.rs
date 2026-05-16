@@ -6,9 +6,9 @@
 //! # Examples
 //!
 //! ```
-//! use ardent::{Formatter, DentOptions, EndOfLines};
+//! use ardent::{Formatter, FormatterOptions, EndOfLines};
 //!
-//! let formatter = Formatter::new(DentOptions {
+//! let formatter = Formatter::new(FormatterOptions {
 //!     end_of_lines: Some(EndOfLines::Lf),
 //!     ..Default::default()
 //! }).unwrap();
@@ -52,20 +52,20 @@ pub enum EndOfLines {
 /// # Examples
 ///
 /// ```
-/// use ardent::DentOptions;
+/// use ardent::FormatterOptions;
 ///
 /// // Use defaults (tabs, indent size 2, trim empty lines)
-/// let opts = DentOptions::default();
+/// let opts = FormatterOptions::default();
 ///
 /// // Use 4-space indentation
-/// let opts = DentOptions {
+/// let opts = FormatterOptions {
 ///     use_tabs: false,
 ///     indent_size: 4,
 ///     ..Default::default()
 /// };
 /// ```
 #[derive(Debug, Clone)]
-pub struct DentOptions {
+pub struct FormatterOptions {
 	/// Line ending style. When `None`, the formatter auto-detects from the input.
 	pub end_of_lines: Option<EndOfLines>,
 	/// Number of spaces per indent level (ignored when `use_tabs` is `true`).
@@ -76,7 +76,7 @@ pub struct DentOptions {
 	pub use_tabs: bool,
 }
 
-impl Default for DentOptions {
+impl Default for FormatterOptions {
 	fn default() -> Self {
 		Self {
 			end_of_lines: None,
@@ -95,9 +95,9 @@ impl Default for DentOptions {
 /// # Examples
 ///
 /// ```
-/// use ardent::{Formatter, DentOptions, EndOfLines};
+/// use ardent::{Formatter, FormatterOptions, EndOfLines};
 ///
-/// let formatter = Formatter::new(DentOptions {
+/// let formatter = Formatter::new(FormatterOptions {
 ///     end_of_lines: Some(EndOfLines::Lf),
 ///     ..Default::default()
 /// }).unwrap();
@@ -111,14 +111,14 @@ impl Default for DentOptions {
 /// assert!(result.is_none()); // None means already formatted
 /// ```
 pub struct Formatter {
-	options: DentOptions,
+	options: FormatterOptions,
 }
 
 impl Formatter {
 	/// Creates a new formatter with the given options.
 	///
 	/// Returns an error if `use_tabs` is `false` and `indent_size` is zero.
-	pub fn new(options: DentOptions) -> Result<Self, String> {
+	pub fn new(options: FormatterOptions) -> Result<Self, String> {
 		if !options.use_tabs && options.indent_size == 0 {
 			return Err("The indent_size option expects a positive integer".to_string());
 		}
@@ -178,7 +178,7 @@ mod tests {
 
 	#[test]
 	fn format_basic() {
-		let formatter = Formatter::new(DentOptions {
+		let formatter = Formatter::new(FormatterOptions {
 			end_of_lines: Some(EndOfLines::Lf),
 			..Default::default()
 		})
@@ -195,7 +195,7 @@ mod tests {
 
 	#[test]
 	fn check_returns_none_when_formatted() {
-		let formatter = Formatter::new(DentOptions {
+		let formatter = Formatter::new(FormatterOptions {
 			end_of_lines: Some(EndOfLines::Lf),
 			..Default::default()
 		})
@@ -207,7 +207,7 @@ mod tests {
 
 	#[test]
 	fn check_returns_some_when_unformatted() {
-		let formatter = Formatter::new(DentOptions {
+		let formatter = Formatter::new(FormatterOptions {
 			end_of_lines: Some(EndOfLines::Lf),
 			..Default::default()
 		})
@@ -219,7 +219,7 @@ mod tests {
 
 	#[test]
 	fn spaces_indent() {
-		let formatter = Formatter::new(DentOptions {
+		let formatter = Formatter::new(FormatterOptions {
 			end_of_lines: Some(EndOfLines::Lf),
 			use_tabs: false,
 			indent_size: 4,

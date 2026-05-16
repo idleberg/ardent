@@ -7,7 +7,7 @@ use std::time::Instant;
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use glob::glob;
 
-use ardent::{DentOptions, EndOfLines, Formatter};
+use ardent::{EndOfLines, Formatter, FormatterOptions};
 
 mod logger;
 use logger::*;
@@ -92,8 +92,8 @@ fn default_eol() -> EndOfLines {
 	}
 }
 
-fn dent_options_from(args: &FormattingArgs) -> DentOptions {
-	DentOptions {
+fn dent_options_from(args: &FormattingArgs) -> FormatterOptions {
+	FormatterOptions {
 		end_of_lines: Some(args.eol.as_ref().map_or_else(default_eol, |e| match e {
 			EolArg::Crlf => EndOfLines::Crlf,
 			EolArg::Lf => EndOfLines::Lf,
