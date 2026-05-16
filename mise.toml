@@ -23,6 +23,10 @@ run = "cargo fmt --check"
 description = "Lint Rust code with Clippy"
 run = "cargo clippy -- --deny warnings"
 
+[tasks.test]
+description = "Run all tests"
+run = "cargo test"
+
 [tasks.compare]
 description = "Compare Node.js and Rust formatter output on provided input files"
 run = "bun tasks/compare.ts"
