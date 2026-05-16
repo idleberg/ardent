@@ -14,13 +14,6 @@ pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 		"!ifmacrondef",
 		"!ifndef",
 		"!macro",
-		"${Case}",
-		"${Case2}",
-		"${Case3}",
-		"${Case4}",
-		"${Case5}",
-		"${CaseElse}",
-		"${Default}",
 		"${Do}",
 		"${DoUntil}",
 		"${DoWhile}",
@@ -37,6 +30,21 @@ pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 		"PageEx",
 		"Section",
 		"SectionGroup",
+	])
+});
+
+/// Keywords that open a case arm within a switch/select block.
+/// These print one level inside their parent and indent their body one further level,
+/// without pushing to the indent stack.
+pub static CASE: LazyLock<HashSet<String>> = LazyLock::new(|| {
+	lower_set(&[
+		"${Case}",
+		"${Case2}",
+		"${Case3}",
+		"${Case4}",
+		"${Case5}",
+		"${CaseElse}",
+		"${Default}",
 	])
 });
 

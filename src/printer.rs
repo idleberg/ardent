@@ -6,7 +6,7 @@ use crate::canonical_parameters::{
 	GLOBAL_PARAMETER_PREFIXES, GLOBAL_PARAMETERS, INSTRUCTION_PARAMETERS,
 };
 use crate::parser::{CSTNode, CommentStyle, TrailingComment};
-use crate::rules::{CLOSE, CLOSE_AFTER, MID, OPEN};
+use crate::rules::{CASE, CLOSE, CLOSE_AFTER, MID, OPEN};
 
 /// Options controlling the printer output.
 pub struct PrinterOptions {
@@ -57,6 +57,17 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 					));
 					stack.push(level);
 					level += 1;
+				} else if CASE.contains(&kw) {
+					let parent_level = stack.last().copied().unwrap_or(0);
+					let case_level = parent_level + 1;
+					lines.push(print_instruction(
+						keyword,
+						args,
+						comment.as_ref(),
+						case_level,
+						options,
+					));
+					level = case_level + 1;
 				} else if CLOSE.contains(&kw) {
 					level = stack.pop().unwrap_or(0);
 					lines.push(print_instruction(
@@ -83,7 +94,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						level,
 						options,
 					));
-					level = stack.pop().unwrap_or(0);
+					level = stack.last().copied().unwrap_or(0) + 1;
 				} else {
 					lines.push(print_instruction(
 						keyword,
@@ -547,5 +558,303 @@ mod tests {
 	fn format_arithmetic_spaced() {
 		let result = format_with_defaults("IntOp $0 $1+$2\n");
 		assert_eq!(result, "IntOp $0 $1 + $2\n");
+	}
+
+	#[test]
+	fn format_mid_keyword_at_opener_level() {
+		let result =
+			format_with_defaults("!if 1\nDetailPrint \"a\"\n!else\nDetailPrint \"b\"\n!endif\n");
+		assert_eq!(
+			result,
+			"!if 1\n\tDetailPrint \"a\"\n!else\n\tDetailPrint \"b\"\n!endif\n"
+		);
+	}
+
+	#[test]
+	fn format_close_after_keyword() {
+		let result = format_with_defaults(
+			"${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Break}\n${EndSwitch}\n",
+		);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t\t${Break}\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_unknown_keyword_no_casing_change() {
+		let result = format_with_defaults("myPlugin::DoStuff arg1\n");
+		assert_eq!(result, "myPlugin::DoStuff arg1\n");
+	}
+
+	#[test]
+	fn format_label_indented_in_block() {
+		let result =
+			format_with_defaults("Section \"Test\"\nmyLabel:\nDetailPrint \"hi\"\nSectionEnd\n");
+		assert_eq!(
+			result,
+			"Section \"Test\"\n\tmyLabel:\n\tDetailPrint \"hi\"\nSectionEnd\n"
+		);
+	}
+
+	#[test]
+	fn format_label_with_comment() {
+		let result = format_with_defaults("myLabel: ; note\n");
+		assert_eq!(result, "myLabel: ; note\n");
+	}
+
+	#[test]
+	fn format_hash_comment() {
+		let result = format_with_defaults("# my comment\n");
+		assert_eq!(result, "# my comment\n");
+	}
+
+	#[test]
+	fn format_semicolon_comment() {
+		let result = format_with_defaults("; my comment\n");
+		assert_eq!(result, "; my comment\n");
+	}
+
+	#[test]
+	fn format_block_comment_single_line() {
+		let result = format_with_defaults("/* hello */\n");
+		assert_eq!(result, "/* hello */\n");
+	}
+
+	#[test]
+	fn format_block_comment_multiline() {
+		let result = format_with_defaults("/* line1\n  line2\n  line3 */\n");
+		assert!(result.starts_with("/*"));
+		assert!(result.contains("line2"));
+		assert!(result.contains("*/\n"));
+	}
+
+	#[test]
+	fn format_comment_indented_in_block() {
+		let result =
+			format_with_defaults("Section \"Test\"\n; comment\nDetailPrint \"hi\"\nSectionEnd\n");
+		assert!(result.contains("\t; comment\n"));
+	}
+
+	#[test]
+	fn format_normalize_global_param() {
+		let result = format_with_defaults("CopyFiles /silent \"a\" \"b\"\n");
+		assert_eq!(result, "CopyFiles /SILENT \"a\" \"b\"\n");
+	}
+
+	#[test]
+	fn format_normalize_instruction_param() {
+		let result = format_with_defaults("WriteRegStr hklm \"Key\" \"Name\" \"Val\"\n");
+		assert_eq!(result, "WriteRegStr HKLM \"Key\" \"Name\" \"Val\"\n");
+	}
+
+	#[test]
+	fn format_normalize_param_prefix() {
+		let result = format_with_defaults("LangString msg /lang=1033 \"Hello\"\n");
+		assert!(result.contains("/LANG=1033"));
+	}
+
+	#[test]
+	fn format_quoted_args_not_normalized() {
+		let result = format_with_defaults("DetailPrint \"hklm\"\n");
+		assert_eq!(result, "DetailPrint \"hklm\"\n");
+	}
+
+	#[test]
+	fn format_dollar_args_not_normalized() {
+		let result = format_with_defaults("StrCpy $0 $INSTDIR\n");
+		assert_eq!(result, "StrCpy $0 $INSTDIR\n");
+	}
+
+	#[test]
+	fn format_pipe_preserves_macro_vars() {
+		let result = format_with_defaults("MessageBox ${MB_TYPE}|MB_ICONQUESTION \"Sure?\"\n");
+		assert!(result.contains("${MB_TYPE}|MB_ICONQUESTION"));
+	}
+
+	#[test]
+	fn format_arithmetic_two_char_op() {
+		let result = format_with_defaults("IntOp $0 $1<<2\n");
+		assert_eq!(result, "IntOp $0 $1 << 2\n");
+	}
+
+	#[test]
+	fn format_arithmetic_negative_operand() {
+		let result = format_with_defaults("IntOp $0 0-$1\n");
+		assert_eq!(result, "IntOp $0 0 - $1\n");
+	}
+
+	#[test]
+	fn format_spaces_indent() {
+		let nodes = parse("section \"Test\"\nDetailPrint \"hi\"\nsectionend\n").unwrap();
+		let result = print(
+			&nodes,
+			&PrinterOptions {
+				use_tabs: false,
+				indent_size: 4,
+				trim_empty_lines: true,
+				eol: "\n".to_string(),
+			},
+		);
+		assert_eq!(
+			result,
+			"Section \"Test\"\n    DetailPrint \"hi\"\nSectionEnd\n"
+		);
+	}
+
+	#[test]
+	fn format_trim_consecutive_blanks() {
+		let result = format_with_defaults("DetailPrint \"a\"\n\n\n\nDetailPrint \"b\"\n");
+		assert_eq!(result, "DetailPrint \"a\"\n\nDetailPrint \"b\"\n");
+	}
+
+	#[test]
+	fn format_trim_leading_blanks() {
+		let result = format_with_defaults("\n\n\nDetailPrint \"a\"\n");
+		assert_eq!(result, "DetailPrint \"a\"\n");
+	}
+
+	#[test]
+	fn format_trim_trailing_blanks() {
+		let result = format_with_defaults("DetailPrint \"a\"\n\n\n");
+		assert_eq!(result, "DetailPrint \"a\"\n");
+	}
+
+	#[test]
+	fn format_blank_before_block() {
+		let result = format_with_defaults(
+			"DetailPrint \"before\"\nSection \"Test\"\nDetailPrint \"in\"\nSectionEnd\n",
+		);
+		assert!(result.contains("DetailPrint \"before\"\n\nSection \"Test\""));
+	}
+
+	#[test]
+	fn format_blank_after_block() {
+		let result = format_with_defaults(
+			"Section \"Test\"\nDetailPrint \"in\"\nSectionEnd\nDetailPrint \"after\"\n",
+		);
+		assert!(result.contains("SectionEnd\n\nDetailPrint \"after\""));
+	}
+
+	#[test]
+	fn format_no_extra_blank_between_blocks() {
+		let result = format_with_defaults(
+			"Section \"A\"\nDetailPrint \"a\"\nSectionEnd\nSection \"B\"\nDetailPrint \"b\"\nSectionEnd\n",
+		);
+		assert!(result.contains("SectionEnd\n\nSection \"B\""));
+		assert!(!result.contains("\n\n\n"));
+	}
+
+	#[test]
+	fn format_instruction_no_args() {
+		let result = format_with_defaults("Return\n");
+		assert_eq!(result, "Return\n");
+	}
+
+	#[test]
+	fn format_deeply_nested() {
+		let input =
+			"Section \"A\"\n!if 1\n!ifdef FOO\nDetailPrint \"deep\"\n!endif\n!endif\nSectionEnd\n";
+		let result = format_with_defaults(input);
+		assert!(result.contains("\t\t\tDetailPrint \"deep\""));
+	}
+
+	#[test]
+	fn normalize_arg_preserves_unknown_bare() {
+		let result = normalize_arg("UNKNOWN_TOKEN", None);
+		assert_eq!(result, "UNKNOWN_TOKEN");
+	}
+
+	#[test]
+	fn split_pipe_tokens_basic() {
+		let args = vec!["MB_OK|MB_ICONQUESTION".to_string()];
+		let result = split_pipe_tokens(&args);
+		assert_eq!(result, vec!["MB_OK", "|", "MB_ICONQUESTION"]);
+	}
+
+	#[test]
+	fn split_pipe_tokens_quoted_not_split() {
+		let args = vec!["\"foo|bar\"".to_string()];
+		let result = split_pipe_tokens(&args);
+		assert_eq!(result, vec!["\"foo|bar\""]);
+	}
+
+	#[test]
+	fn join_with_compact_pipes_basic() {
+		let args = vec!["MB_OK".to_string(), "|".to_string(), "MB_ICON".to_string()];
+		let result = join_with_compact_pipes(&args);
+		assert_eq!(result, "MB_OK|MB_ICON");
+	}
+
+	#[test]
+	fn tokenize_arithmetic_simple() {
+		let result = tokenize_arithmetic("$1+$2");
+		assert_eq!(result, vec!["$1", "+", "$2"]);
+	}
+
+	#[test]
+	fn tokenize_arithmetic_with_macro_var() {
+		let result = tokenize_arithmetic("${Var}+1");
+		assert_eq!(result, vec!["${Var}", "+", "1"]);
+	}
+
+	#[test]
+	fn format_case_fallthrough() {
+		let input = "${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Case} 2\nDetailPrint \"two\"\n${EndSwitch}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_case_with_break() {
+		let input = "${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Break}\n${Case} 2\nDetailPrint \"two\"\n${Break}\n${EndSwitch}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t\t${Break}\n\t${Case} 2\n\t\tDetailPrint \"two\"\n\t\t${Break}\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_case_else() {
+		let input = "${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${CaseElse}\nDetailPrint \"else\"\n${EndSwitch}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${CaseElse}\n\t\tDetailPrint \"else\"\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_default_case() {
+		let input = "${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Default}\nDetailPrint \"def\"\n${EndSwitch}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Default}\n\t\tDetailPrint \"def\"\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_nested_switch() {
+		let input = "${Switch} $0\n${Case} 1\n${Switch} $1\n${Case} a\nDetailPrint \"nested\"\n${EndSwitch}\n${EndSwitch}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Switch} $0\n\t${Case} 1\n\n\t\t${Switch} $1\n\t\t\t${Case} a\n\t\t\t\tDetailPrint \"nested\"\n\t\t${EndSwitch}\n${EndSwitch}\n"
+		);
+	}
+
+	#[test]
+	fn format_select_with_cases() {
+		let input = "${Select} $0\n${Case} 1\nDetailPrint \"one\"\n${Case} 2\nDetailPrint \"two\"\n${EndSelect}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(
+			result,
+			"${Select} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSelect}\n"
+		);
 	}
 }

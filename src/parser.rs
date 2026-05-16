@@ -672,4 +672,230 @@ mod tests {
 			}]
 		);
 	}
+
+	#[test]
+	fn parse_line_continuation_crlf() {
+		let nodes = parse("Section \\\r\n  \"Test\"\r\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "Section".to_string(),
+				args: vec!["\"Test\"".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_empty_input() {
+		let nodes = parse("").unwrap();
+		assert_eq!(nodes, vec![]);
+	}
+
+	#[test]
+	fn parse_multiple_instructions() {
+		let nodes = parse("DetailPrint \"a\"\nDetailPrint \"b\"\n").unwrap();
+		assert_eq!(nodes.len(), 2);
+		assert!(
+			matches!(&nodes[0], CSTNode::Instruction { keyword, .. } if keyword == "DetailPrint")
+		);
+		assert!(
+			matches!(&nodes[1], CSTNode::Instruction { keyword, .. } if keyword == "DetailPrint")
+		);
+	}
+
+	#[test]
+	fn parse_label_with_trailing_comment() {
+		let nodes = parse("myLabel: ; note\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "myLabel".to_string(),
+				comment: Some(TrailingComment {
+					style: CommentStyle::Semicolon,
+					value: "note".to_string(),
+				}),
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_label_with_instruction() {
+		let nodes = parse("done: Return\n").unwrap();
+		assert_eq!(nodes.len(), 2);
+		assert_eq!(
+			nodes[0],
+			CSTNode::Label {
+				name: "done".to_string(),
+				comment: None,
+			}
+		);
+		assert_eq!(
+			nodes[1],
+			CSTNode::Instruction {
+				keyword: "Return".to_string(),
+				args: vec![],
+				comment: None,
+			}
+		);
+	}
+
+	#[test]
+	fn parse_multiline_block_comment() {
+		let nodes = parse("/* line1\nline2\nline3 */\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Comment {
+				style: CommentStyle::Block,
+				value: " line1\nline2\nline3 ".to_string(),
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_instruction_no_args() {
+		let nodes = parse("Return\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "Return".to_string(),
+				args: vec![],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_instruction_many_args() {
+		let nodes = parse("WriteRegStr HKLM \"Software\\Test\" \"Key\" \"Value\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "WriteRegStr".to_string(),
+				args: vec![
+					"HKLM".to_string(),
+					"\"Software\\Test\"".to_string(),
+					"\"Key\"".to_string(),
+					"\"Value\"".to_string(),
+				],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_hash_trailing_comment() {
+		let nodes = parse("DetailPrint \"hi\" # note\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "DetailPrint".to_string(),
+				args: vec!["\"hi\"".to_string()],
+				comment: Some(TrailingComment {
+					style: CommentStyle::Hash,
+					value: "note".to_string(),
+				}),
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_single_quoted_arg() {
+		let nodes = parse("DetailPrint 'hello world'\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "DetailPrint".to_string(),
+				args: vec!["'hello world'".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_backtick_quoted_arg() {
+		let nodes = parse("DetailPrint `hello world`\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "DetailPrint".to_string(),
+				args: vec!["`hello world`".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_multiple_blanks() {
+		let nodes = parse("\n\n\n").unwrap();
+		assert_eq!(nodes, vec![CSTNode::Blank, CSTNode::Blank, CSTNode::Blank]);
+	}
+
+	#[test]
+	fn parse_crlf_line_endings() {
+		let nodes = parse("DetailPrint \"hi\"\r\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "DetailPrint".to_string(),
+				args: vec!["\"hi\"".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn preprocess_strips_bom() {
+		let result = preprocess("\u{FEFF}hello");
+		assert_eq!(result, "hello");
+	}
+
+	#[test]
+	fn preprocess_no_bom() {
+		let result = preprocess("hello");
+		assert_eq!(result, "hello");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_lf() {
+		let result = preprocess("foo \\\n  bar");
+		assert_eq!(result, "foo  bar");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_crlf() {
+		let result = preprocess("foo \\\r\n  bar");
+		assert_eq!(result, "foo  bar");
+	}
+
+	#[test]
+	fn preprocess_no_continuation() {
+		let result = preprocess("foo \\ bar");
+		assert_eq!(result, "foo \\ bar");
+	}
+
+	#[test]
+	fn parse_eof_without_trailing_newline() {
+		let nodes = parse("DetailPrint \"hi\"").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "DetailPrint".to_string(),
+				args: vec!["\"hi\"".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_dotted_label() {
+		let nodes = parse(".onInit:\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: ".onInit".to_string(),
+				comment: None,
+			}]
+		);
+	}
 }
