@@ -426,7 +426,10 @@ fn print_trailing_comment(comment: &TrailingComment) -> String {
 }
 
 fn is_block_open(node: &CSTNode) -> bool {
-	matches!(node, CSTNode::Instruction { keyword, .. } if OPEN.contains(&keyword.to_lowercase()))
+	matches!(node, CSTNode::Instruction { keyword, .. } if {
+		let kw = keyword.to_lowercase();
+		OPEN.contains(&kw) || CASE.contains(&kw)
+	})
 }
 
 fn is_block_close(node: &CSTNode) -> bool {
@@ -804,7 +807,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSwitch}\n"
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSwitch}\n"
 		);
 	}
 
@@ -814,7 +817,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t\t${Break}\n\t${Case} 2\n\t\tDetailPrint \"two\"\n\t\t${Break}\n${EndSwitch}\n"
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t\t${Break}\n\n\t${Case} 2\n\t\tDetailPrint \"two\"\n\t\t${Break}\n${EndSwitch}\n"
 		);
 	}
 
@@ -824,7 +827,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${CaseElse}\n\t\tDetailPrint \"else\"\n${EndSwitch}\n"
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${CaseElse}\n\t\tDetailPrint \"else\"\n${EndSwitch}\n"
 		);
 	}
 
@@ -834,7 +837,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Default}\n\t\tDetailPrint \"def\"\n${EndSwitch}\n"
+			"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${Default}\n\t\tDetailPrint \"def\"\n${EndSwitch}\n"
 		);
 	}
 
@@ -844,7 +847,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Switch} $0\n\t${Case} 1\n\n\t\t${Switch} $1\n\t\t\t${Case} a\n\t\t\t\tDetailPrint \"nested\"\n\t\t${EndSwitch}\n${EndSwitch}\n"
+			"${Switch} $0\n\t${Case} 1\n\t\t${Switch} $1\n\t\t\t${Case} a\n\t\t\t\tDetailPrint \"nested\"\n\t\t${EndSwitch}\n${EndSwitch}\n"
 		);
 	}
 
@@ -854,7 +857,7 @@ mod tests {
 		let result = format_with_defaults(input);
 		assert_eq!(
 			result,
-			"${Select} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSelect}\n"
+			"${Select} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSelect}\n"
 		);
 	}
 }
