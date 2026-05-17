@@ -33,4 +33,4 @@ jobs:
         run: mise run build
 
       - name: Compare fixtures
-        run: mise run compare -- fixtures/
+        run: mise run compare -- tests/fixtures/
