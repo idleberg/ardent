@@ -77,7 +77,7 @@ jobs:
           name: ardent-${{ matrix.artifact-name }}
           path: ardent-*.zip
 
-  release:
+  create-release:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -91,7 +91,7 @@ jobs:
         with:
           files: ardent-*.zip
 
-  publish:
+  publish-to-crates:
     needs: build
     runs-on: ubuntu-latest
     steps:
