@@ -41,7 +41,7 @@ jobs:
       - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Install Rust toolchain
-        if: ${{ !matrix.use-cross && !matrix.use-cargo-xwin }}
+        if: ${{ !matrix.use-cross }}
         run: rustup target add ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
