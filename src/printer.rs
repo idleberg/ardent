@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
 use crate::canonical_casing::CANONICAL_CASING;
+use crate::canonical_includes::CANONICAL_INCLUDES;
 use crate::canonical_parameters::{
 	GLOBAL_PARAMETER_PREFIXES, GLOBAL_PARAMETERS, INSTRUCTION_PARAMETERS,
 };
@@ -378,6 +379,7 @@ fn print_instruction(
 	let kw_lower = keyword.to_lowercase();
 	let canonical_kw = CANONICAL_CASING
 		.get(kw_lower.as_str())
+		.or_else(|| CANONICAL_INCLUDES.get(kw_lower.as_str()))
 		.copied()
 		.unwrap_or(keyword);
 	let instr_params = INSTRUCTION_PARAMETERS.get(kw_lower.as_str());
@@ -859,5 +861,40 @@ mod tests {
 			result,
 			"${Select} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${Case} 2\n\t\tDetailPrint \"two\"\n${EndSelect}\n"
 		);
+	}
+
+	#[test]
+	fn format_include_macro_casing() {
+		let input = "${if} $R0 == \"\"\n${endif}\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "${If} $R0 == \"\"\n${EndIf}\n");
+	}
+
+	#[test]
+	fn format_filefunc_macro_casing() {
+		let input = "${GETSIZE} \"$INSTDIR\" \"/S=0K\" $0 $1 $2\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "${GetSize} \"$INSTDIR\" \"/S=0K\" $0 $1 $2\n");
+	}
+
+	#[test]
+	fn format_winver_macro_with_dot() {
+		let input = "${atleastwin8.1} $0\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "${AtLeastWin8.1} $0\n");
+	}
+
+	#[test]
+	fn format_x64_macro_casing() {
+		let input = "${runningx64} $0\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "${RunningX64} $0\n");
+	}
+
+	#[test]
+	fn format_unknown_macro_unchanged() {
+		let input = "${MyCustomMacro} \"arg\"\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "${MyCustomMacro} \"arg\"\n");
 	}
 }

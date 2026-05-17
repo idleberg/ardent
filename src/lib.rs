@@ -24,6 +24,8 @@
 
 /// Canonical casing lookup table for NSIS instructions.
 pub mod canonical_casing;
+/// Canonical casing lookup table for NSIS bundled include library macros.
+pub mod canonical_includes;
 /// Canonical parameter lookup tables for NSIS instructions.
 pub mod canonical_parameters;
 /// PEG-based parser that produces a concrete syntax tree from NSIS source.
