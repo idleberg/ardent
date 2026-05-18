@@ -8,7 +8,7 @@
 
 ## Description
 
-This is a Rust implementation of [`dent`](https://www.npmjs.org/package/@nsis/dent-cli) (hence the name), a NodeJS-based formatting tool for NSIS scripts.
+This is a Rust implementation of [`dent`](https://www.npmjs.org/package/@nsis/dent-cli), a NodeJS-based formatting tool for NSIS scripts.
 
 It aims to be fully compatible while making distribution easier for people outside the NodeJS ecosystem.
 
