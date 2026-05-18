@@ -9,3 +9,7 @@ pnpm-lock.yaml
 
 # claude
 !.claude/settings.json
+
+# project-specific
+*.nsi
+*.nsh
