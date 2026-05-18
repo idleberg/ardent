@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::Instant;
@@ -127,6 +127,16 @@ fn is_nsis_file(path: &Path) -> bool {
 		.is_some_and(|ext| ext == "nsi" || ext == "nsh")
 }
 
+fn has_stdin() -> bool {
+	!io::stdin().is_terminal()
+}
+
+fn read_stdin() -> io::Result<String> {
+	let mut buf = String::new();
+	io::stdin().read_to_string(&mut buf)?;
+	Ok(buf)
+}
+
 fn run_format(
 	patterns: &[String],
 	write: bool,
@@ -141,19 +151,13 @@ fn run_format(
 		logger_warn!("the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
-	if patterns.is_empty() {
+	if patterns.is_empty() && !has_stdin() {
 		Cli::command()
 			.find_subcommand_mut("format")
 			.unwrap()
 			.print_help()
 			.unwrap();
 		return ExitCode::from(2);
-	}
-
-	let files = resolve_files(patterns);
-	if files.is_empty() {
-		logger_error!("no valid input files provided, exiting.");
-		return ExitCode::from(1);
 	}
 
 	let formatter = match Formatter::new(dent_options_from(formatting)) {
@@ -163,6 +167,32 @@ fn run_format(
 			return ExitCode::from(1);
 		}
 	};
+
+	if patterns.is_empty() {
+		let raw_contents = match read_stdin() {
+			Ok(c) => c,
+			Err(e) => {
+				logger_error!("reading stdin: {e}");
+				return ExitCode::from(1);
+			}
+		};
+		let result = match formatter.check(&raw_contents) {
+			Ok(r) => r,
+			Err(e) => {
+				logger_error!("parsing stdin: {e}");
+				return ExitCode::from(1);
+			}
+		};
+		let output = result.as_deref().unwrap_or(&raw_contents);
+		let _ = io::stdout().write_all(output.as_bytes());
+		return ExitCode::SUCCESS;
+	}
+
+	let files = resolve_files(patterns);
+	if files.is_empty() {
+		logger_error!("no valid input files provided, exiting.");
+		return ExitCode::from(1);
+	}
 
 	if write {
 		logger_start!(
@@ -250,18 +280,12 @@ fn run_check(
 		logger_warn!("the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
-	if patterns.is_empty() {
+	if patterns.is_empty() && !has_stdin() {
 		Cli::command()
 			.find_subcommand_mut("check")
 			.unwrap()
 			.print_help()
 			.unwrap();
-		return ExitCode::from(2);
-	}
-
-	let files = resolve_files(patterns);
-	if files.is_empty() {
-		logger_error!("no valid input files provided, exiting.");
 		return ExitCode::from(2);
 	}
 
@@ -272,6 +296,50 @@ fn run_check(
 			return ExitCode::from(1);
 		}
 	};
+
+	if patterns.is_empty() {
+		logger_start!("Checking standard input...");
+		if write {
+			logger_warn!("the \"--write\" option is ignored when reading from stdin.");
+		}
+		let start = Instant::now();
+		let raw_contents = match read_stdin() {
+			Ok(c) => c,
+			Err(e) => {
+				logger_error!("reading stdin: {e}");
+				return ExitCode::from(1);
+			}
+		};
+		let result = match formatter.check(&raw_contents) {
+			Ok(r) => r,
+			Err(e) => {
+				logger_error!("parsing stdin: {e}");
+				return ExitCode::from(1);
+			}
+		};
+		let duration = start.elapsed().as_millis();
+		return if result.is_some() {
+			logger_warn!(
+				"Script has issues {}",
+				dim(&format_args!("({}ms)", duration))
+			);
+			logger_success!("Completed in {}ms.", duration);
+			ExitCode::from(1)
+		} else {
+			logger_info!(
+				"Script already formatted {}",
+				dim(&format_args!("({}ms)", duration))
+			);
+			logger_success!("Completed in {}ms.", duration);
+			ExitCode::SUCCESS
+		};
+	}
+
+	let files = resolve_files(patterns);
+	if files.is_empty() {
+		logger_error!("no valid input files provided, exiting.");
+		return ExitCode::from(2);
+	}
 
 	logger_start!(
 		"Checking {} {}...",
