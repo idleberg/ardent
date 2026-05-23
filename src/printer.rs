@@ -265,7 +265,7 @@ static ARITHMETIC_INSTRUCTIONS: LazyLock<HashSet<&'static str>> =
 
 static ARITHMETIC_OPS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
 	HashSet::from([
-		"||", "&&", "<<", ">>", "+", "-", "*", "/", "%", "|", "&", "^", "~", "!",
+		">>>", "||", "&&", "<<", ">>", "+", "-", "*", "/", "%", "|", "&", "^", "~", "!",
 	])
 });
 
@@ -304,6 +304,20 @@ fn tokenize_arithmetic(arg: &str) -> Vec<String> {
 			i += 2 + end + 1;
 			last_was_op = false;
 			continue;
+		}
+
+		if i + 2 < chars.len() {
+			let three: String = chars[i..=i + 2].iter().collect();
+			if ARITHMETIC_OPS.contains(three.as_str()) {
+				if !current.is_empty() {
+					result.push(current.clone());
+					current.clear();
+				}
+				result.push(three);
+				last_was_op = true;
+				i += 3;
+				continue;
+			}
 		}
 
 		if i + 1 < chars.len() {
@@ -690,6 +704,18 @@ mod tests {
 	}
 
 	#[test]
+	fn format_arithmetic_unsigned_right_shift() {
+		let result = format_with_defaults("IntOp $0 $1>>>$2\n");
+		assert_eq!(result, "IntOp $0 $1 >>> $2\n");
+	}
+
+	#[test]
+	fn format_arithmetic_unsigned_right_shift_already_spaced() {
+		let result = format_with_defaults("IntOp $0 $1 >>> $2\n");
+		assert_eq!(result, "IntOp $0 $1 >>> $2\n");
+	}
+
+	#[test]
 	fn format_spaces_indent() {
 		let nodes = parse("section \"Test\"\nDetailPrint \"hi\"\nsectionend\n").unwrap();
 		let result = print(
@@ -801,6 +827,18 @@ mod tests {
 	fn tokenize_arithmetic_with_macro_var() {
 		let result = tokenize_arithmetic("${Var}+1");
 		assert_eq!(result, vec!["${Var}", "+", "1"]);
+	}
+
+	#[test]
+	fn tokenize_arithmetic_unsigned_right_shift() {
+		let result = tokenize_arithmetic("$1>>>$2");
+		assert_eq!(result, vec!["$1", ">>>", "$2"]);
+	}
+
+	#[test]
+	fn tokenize_arithmetic_right_shift_not_confused_with_unsigned() {
+		let result = tokenize_arithmetic("$1>>$2");
+		assert_eq!(result, vec!["$1", ">>", "$2"]);
 	}
 
 	#[test]

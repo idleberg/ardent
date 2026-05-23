@@ -173,6 +173,33 @@ fn canonical_include_idempotent() {
 }
 
 #[test]
+fn intop_unsigned_right_shift() {
+	let f = formatter_lf();
+	assert_eq!(
+		f.format("IntOp $0 $1>>>$2\n").unwrap(),
+		"IntOp $0 $1 >>> $2\n"
+	);
+}
+
+#[test]
+fn intop_unsigned_right_shift_already_spaced() {
+	let f = formatter_lf();
+	assert_eq!(
+		f.format("IntOp $0 $1 >>> $2\n").unwrap(),
+		"IntOp $0 $1 >>> $2\n"
+	);
+}
+
+#[test]
+fn intop_right_shift_not_confused_with_unsigned() {
+	let f = formatter_lf();
+	assert_eq!(
+		f.format("IntOp $0 $1>>$2\n").unwrap(),
+		"IntOp $0 $1 >> $2\n"
+	);
+}
+
+#[test]
 fn error_on_zero_indent_size_with_spaces() {
 	let result = Formatter::new(FormatterOptions {
 		use_tabs: false,
