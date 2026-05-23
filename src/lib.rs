@@ -39,6 +39,7 @@ use parser::parse;
 use printer::{PrinterOptions, print};
 
 const DEFAULT_INDENT_SIZE: usize = 2;
+const DEFAULT_PRINT_WIDTH: usize = 120;
 
 /// Line ending style for formatted output.
 #[derive(Debug, Clone)]
@@ -76,6 +77,8 @@ pub struct FormatterOptions {
 	pub trim_empty_lines: bool,
 	/// Whether to indent with tabs (`true`) or spaces (`false`).
 	pub use_tabs: bool,
+	/// Maximum line width before breaking with `\` continuations. `0` disables wrapping.
+	pub print_width: usize,
 }
 
 impl Default for FormatterOptions {
@@ -85,6 +88,7 @@ impl Default for FormatterOptions {
 			indent_size: DEFAULT_INDENT_SIZE,
 			trim_empty_lines: true,
 			use_tabs: true,
+			print_width: DEFAULT_PRINT_WIDTH,
 		}
 	}
 }
@@ -140,6 +144,7 @@ impl Formatter {
 				use_tabs: self.options.use_tabs,
 				indent_size: self.options.indent_size,
 				trim_empty_lines: self.options.trim_empty_lines,
+				print_width: self.options.print_width,
 				eol,
 			},
 		))

@@ -76,6 +76,14 @@ struct FormattingArgs {
 
 	#[arg(short = 'T', long = "no-trim", help = "Do not trim empty lines")]
 	no_trim: bool,
+
+	#[arg(
+		short = 'p',
+		long,
+		default_value_t = 120,
+		help = "Maximum line width before wrapping with line continuations (0 to disable)"
+	)]
+	print_width: usize,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -101,6 +109,7 @@ fn dent_options_from(args: &FormattingArgs) -> FormatterOptions {
 		indent_size: args.indent_size,
 		trim_empty_lines: !args.no_trim,
 		use_tabs: !args.use_spaces,
+		print_width: args.print_width,
 	}
 }
 

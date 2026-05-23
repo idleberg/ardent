@@ -17,6 +17,8 @@ pub struct PrinterOptions {
 	pub indent_size: usize,
 	/// Whether to collapse consecutive blank lines and strip leading/trailing blanks.
 	pub trim_empty_lines: bool,
+	/// Maximum line width before breaking with `\` continuations. `0` disables wrapping.
+	pub print_width: usize,
 	/// The line ending string to use.
 	pub eol: String,
 }
@@ -416,13 +418,27 @@ fn print_instruction(
 		join_with_compact_pipes(&normalized)
 	};
 
+	let indent = indent_str(level, options);
+
+	if options.print_width > 0 && !normalized.is_empty() {
+		let trailing = comment.map(print_trailing_comment);
+		return wrap_instruction(
+			canonical_kw,
+			&normalized,
+			trailing.as_deref(),
+			&indent,
+			is_arithmetic,
+			options,
+		);
+	}
+
 	let parts = if normalized.is_empty() {
 		canonical_kw.to_string()
 	} else {
 		format!("{canonical_kw} {joined}")
 	};
 
-	let mut line = format!("{}{}", indent_str(level, options), parts);
+	let mut line = format!("{indent}{parts}");
 
 	if let Some(c) = comment {
 		line.push(' ');
@@ -439,6 +455,58 @@ fn print_trailing_comment(comment: &TrailingComment) -> String {
 		';'
 	};
 	format!("{marker} {}", comment.value)
+}
+
+fn wrap_instruction(
+	keyword: &str,
+	args: &[String],
+	trailing_comment: Option<&str>,
+	indent: &str,
+	is_arithmetic: bool,
+	options: &PrinterOptions,
+) -> String {
+	let join_fn = |tokens: &[String]| -> String {
+		if is_arithmetic {
+			tokens.join(" ")
+		} else {
+			join_with_compact_pipes(tokens)
+		}
+	};
+
+	let single_line = if args.is_empty() {
+		format!("{indent}{keyword}")
+	} else {
+		format!("{indent}{keyword} {}", join_fn(args))
+	};
+
+	let full_line = match trailing_comment {
+		Some(c) => format!("{single_line} {c}"),
+		None => single_line,
+	};
+
+	if full_line.len() <= options.print_width {
+		return full_line;
+	}
+
+	let mut result_lines: Vec<String> = Vec::new();
+	let mut current = format!("{indent}{keyword}");
+
+	for arg in args {
+		let candidate = format!("{current} {arg}");
+		if candidate.len() + 2 > options.print_width && current.len() > indent.len() {
+			result_lines.push(format!("{current} \\"));
+			current = format!("{indent}{arg}");
+		} else {
+			current = candidate;
+		}
+	}
+
+	if let Some(c) = trailing_comment {
+		current = format!("{current} {c}");
+	}
+	result_lines.push(current);
+
+	result_lines.join(&options.eol)
 }
 
 fn is_block_open(node: &CSTNode) -> bool {
@@ -537,6 +605,7 @@ mod tests {
 				use_tabs: true,
 				indent_size: 2,
 				trim_empty_lines: true,
+				print_width: 0,
 				eol: "\n".to_string(),
 			},
 		)
@@ -724,6 +793,7 @@ mod tests {
 				use_tabs: false,
 				indent_size: 4,
 				trim_empty_lines: true,
+				print_width: 0,
 				eol: "\n".to_string(),
 			},
 		);
@@ -934,5 +1004,83 @@ mod tests {
 		let input = "${MyCustomMacro} \"arg\"\n";
 		let result = format_with_defaults(input);
 		assert_eq!(result, "${MyCustomMacro} \"arg\"\n");
+	}
+
+	fn format_with_print_width(input: &str, print_width: usize) -> String {
+		let nodes = parse(input).unwrap();
+		print(
+			&nodes,
+			&PrinterOptions {
+				use_tabs: true,
+				indent_size: 2,
+				trim_empty_lines: true,
+				print_width,
+				eol: "\n".to_string(),
+			},
+		)
+	}
+
+	#[test]
+	fn wrap_line_under_width_unchanged() {
+		let input = "DetailPrint \"hello\"\n";
+		let result = format_with_print_width(input, 80);
+		assert_eq!(result, "DetailPrint \"hello\"\n");
+	}
+
+	#[test]
+	fn wrap_line_exceeding_width() {
+		let input = "MessageBox MB_OK \"A long string value\" IDYES true IDNO false\n";
+		let result = format_with_print_width(input, 40);
+		assert_eq!(
+			result,
+			"MessageBox MB_OK \"A long string value\" \\\nIDYES true IDNO false\n"
+		);
+	}
+
+	#[test]
+	fn wrap_preserves_indent_level() {
+		let input = "Section \"Test\"\nMessageBox MB_OK \"A long string value\" IDYES true IDNO false\nSectionEnd\n";
+		let result = format_with_print_width(input, 50);
+		assert_eq!(
+			result,
+			"Section \"Test\"\n\tMessageBox MB_OK \"A long string value\" IDYES \\\n\ttrue IDNO false\nSectionEnd\n"
+		);
+	}
+
+	#[test]
+	fn wrap_single_oversized_arg() {
+		let input =
+			"DetailPrint \"This is a very long string that exceeds the print width on its own\"\n";
+		let result = format_with_print_width(input, 40);
+		assert_eq!(
+			result,
+			"DetailPrint \\\n\"This is a very long string that exceeds the print width on its own\"\n"
+		);
+	}
+
+	#[test]
+	fn wrap_with_trailing_comment() {
+		let input = "MessageBox MB_OK \"A long string value\" IDYES true IDNO false ; a comment\n";
+		let result = format_with_print_width(input, 40);
+		assert!(result.ends_with("IDNO false ; a comment\n"));
+		assert!(result.contains(" \\\n"));
+	}
+
+	#[test]
+	fn wrap_disabled_when_zero() {
+		let input = "MessageBox MB_OK \"A long string value\" IDYES true IDNO false\n";
+		let result = format_with_print_width(input, 0);
+		assert_eq!(
+			result,
+			"MessageBox MB_OK \"A long string value\" IDYES true IDNO false\n"
+		);
+	}
+
+	#[test]
+	fn wrap_idempotent() {
+		let input = "MessageBox MB_OK \"A long string value\" IDYES true IDNO false\n";
+		let first = format_with_print_width(input, 40);
+		let second = format_with_print_width(&first, 40);
+		assert_eq!(first, second);
 	}
 }
