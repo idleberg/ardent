@@ -98,6 +98,7 @@ let formatter = Formatter::new(FormatterOptions {
     use_tabs: true,
     indent_size: 2,
     trim_empty_lines: true,
+    print_width: 120,
 }).expect("valid options");
 
 let input = r#"section "My Section"
