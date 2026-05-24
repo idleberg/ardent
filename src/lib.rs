@@ -6,10 +6,10 @@
 //! # Examples
 //!
 //! ```
-//! use ardent::{Formatter, FormatterOptions, EndOfLines};
+//! use ardent::{Formatter, FormatterOptions, EndOfLine};
 //!
 //! let formatter = Formatter::new(FormatterOptions {
-//!     end_of_lines: Some(EndOfLines::Lf),
+//!     end_of_line: Some(EndOfLine::Lf),
 //!     ..Default::default()
 //! }).unwrap();
 //!
@@ -43,7 +43,7 @@ const DEFAULT_PRINT_WIDTH: usize = 120;
 
 /// Line ending style for formatted output.
 #[derive(Debug, Clone)]
-pub enum EndOfLines {
+pub enum EndOfLine {
 	/// Windows-style line endings (`\r\n`).
 	Crlf,
 	/// Unix-style line endings (`\n`).
@@ -70,7 +70,7 @@ pub enum EndOfLines {
 #[derive(Debug, Clone)]
 pub struct FormatterOptions {
 	/// Line ending style. When `None`, the formatter auto-detects from the input.
-	pub end_of_lines: Option<EndOfLines>,
+	pub end_of_line: Option<EndOfLine>,
 	/// Number of spaces per indent level (ignored when `use_tabs` is `true`).
 	pub indent_size: usize,
 	/// Whether to collapse consecutive blank lines and strip leading/trailing blanks.
@@ -84,7 +84,7 @@ pub struct FormatterOptions {
 impl Default for FormatterOptions {
 	fn default() -> Self {
 		Self {
-			end_of_lines: None,
+			end_of_line: None,
 			indent_size: DEFAULT_INDENT_SIZE,
 			trim_empty_lines: true,
 			use_tabs: true,
@@ -101,10 +101,10 @@ impl Default for FormatterOptions {
 /// # Examples
 ///
 /// ```
-/// use ardent::{Formatter, FormatterOptions, EndOfLines};
+/// use ardent::{Formatter, FormatterOptions, EndOfLine};
 ///
 /// let formatter = Formatter::new(FormatterOptions {
-///     end_of_lines: Some(EndOfLines::Lf),
+///     end_of_line: Some(EndOfLine::Lf),
 ///     ..Default::default()
 /// }).unwrap();
 ///
@@ -164,10 +164,10 @@ impl Formatter {
 	}
 
 	fn detect_eol(&self, input: &str) -> String {
-		if let Some(ref eol) = self.options.end_of_lines {
+		if let Some(ref eol) = self.options.end_of_line {
 			return match eol {
-				EndOfLines::Crlf => "\r\n".to_string(),
-				EndOfLines::Lf => "\n".to_string(),
+				EndOfLine::Crlf => "\r\n".to_string(),
+				EndOfLine::Lf => "\n".to_string(),
 			};
 		}
 
@@ -186,7 +186,7 @@ mod tests {
 	#[test]
 	fn format_basic() {
 		let formatter = Formatter::new(FormatterOptions {
-			end_of_lines: Some(EndOfLines::Lf),
+			end_of_line: Some(EndOfLine::Lf),
 			..Default::default()
 		})
 		.unwrap();
@@ -203,7 +203,7 @@ mod tests {
 	#[test]
 	fn check_returns_none_when_formatted() {
 		let formatter = Formatter::new(FormatterOptions {
-			end_of_lines: Some(EndOfLines::Lf),
+			end_of_line: Some(EndOfLine::Lf),
 			..Default::default()
 		})
 		.unwrap();
@@ -215,7 +215,7 @@ mod tests {
 	#[test]
 	fn check_returns_some_when_unformatted() {
 		let formatter = Formatter::new(FormatterOptions {
-			end_of_lines: Some(EndOfLines::Lf),
+			end_of_line: Some(EndOfLine::Lf),
 			..Default::default()
 		})
 		.unwrap();
@@ -227,7 +227,7 @@ mod tests {
 	#[test]
 	fn spaces_indent() {
 		let formatter = Formatter::new(FormatterOptions {
-			end_of_lines: Some(EndOfLines::Lf),
+			end_of_line: Some(EndOfLine::Lf),
 			use_tabs: false,
 			indent_size: 4,
 			..Default::default()

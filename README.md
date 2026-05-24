@@ -91,10 +91,10 @@ See `ardent check --help` for available options.
 ### Formatting
 
 ```rust
-use ardent::{FormatterOptions, EndOfLines, Formatter};
+use ardent::{FormatterOptions, EndOfLine, Formatter};
 
 let formatter = Formatter::new(FormatterOptions {
-    end_of_lines: Some(EndOfLines::Lf),
+    end_of_line: Some(EndOfLine::Lf),
     use_tabs: true,
     indent_size: 2,
     trim_empty_lines: true,
@@ -127,13 +127,13 @@ match formatter.check(input).unwrap() {
 
 ### Options
 
-| Field              | Type                 | Default              | Description                                                        |
-| ------------------ | -------------------- | -------------------- | ------------------------------------------------------------------ |
-| `end_of_lines`     | `Option<EndOfLines>` | `None` (auto-detect) | Force CRLF or LF line endings                                      |
-| `indent_size`      | `usize`              | `2`                  | Spaces per indent level (ignored when using tabs)                  |
-| `print_width`      | `usize`              | `120`                | Maximum line width before wrapping with `\` continuations (0 disables) |
-| `trim_empty_lines` | `bool`               | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks |
-| `use_tabs`         | `bool`               | `true`               | Indent with tabs instead of spaces                                 |
+| Field              | Type                | Default              | Description                                                            |
+| ------------------ | ------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `end_of_line`      | `Option<EndOfLine>` | `None` (auto-detect) | Force CRLF or LF line endings                                          |
+| `indent_size`      | `usize`             | `2`                  | Spaces per indent level (ignored when using tabs)                      |
+| `print_width`      | `usize`             | `120`                | Maximum line width before wrapping with `\` continuations (0 disables) |
+| `trim_empty_lines` | `bool`              | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks     |
+| `use_tabs`         | `bool`              | `true`               | Indent with tabs instead of spaces                                     |
 
 :white_check_mark: [Why defaulting to tabs is good for accessibility](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890)
 

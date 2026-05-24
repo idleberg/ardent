@@ -1,8 +1,8 @@
-use ardent::{EndOfLines, Formatter, FormatterOptions};
+use ardent::{EndOfLine, Formatter, FormatterOptions};
 
 fn formatter_lf() -> Formatter {
 	Formatter::new(FormatterOptions {
-		end_of_lines: Some(EndOfLines::Lf),
+		end_of_line: Some(EndOfLine::Lf),
 		..Default::default()
 	})
 	.unwrap()
