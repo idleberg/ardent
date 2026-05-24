@@ -141,16 +141,18 @@ match formatter.check(input).unwrap() {
 
 ```shell
 Benchmark 1: ardent check Examples/bigtest.nsi
-  Time (mean ± σ):       2.1 ms ±   0.7 ms    [User: 1.2 ms, System: 0.6 ms]
-  Range (min … max):     1.5 ms …  11.8 ms    488 runs
+  Time (mean ± σ):       1.5 ms ±   0.2 ms    [User: 0.7 ms, System: 0.5 ms]
+  Range (min … max):     1.2 ms …   2.6 ms    552 runs
 
 Benchmark 2: dent check Examples/bigtest.nsi
-  Time (mean ± σ):      62.8 ms ±   3.1 ms    [User: 55.5 ms, System: 10.1 ms]
-  Range (min … max):    61.1 ms …  82.5 ms    45 runs
+  Time (mean ± σ):      53.9 ms ±   1.5 ms    [User: 47.4 ms, System: 7.8 ms]
+  Range (min … max):    51.8 ms …  57.4 ms    51 runs
+
+  Warning: Ignoring non-zero exit code.
 
 Summary
   ardent check Examples/bigtest.nsi ran
-   29.22 ± 9.26 times faster than dent check Examples/bigtest.nsi
+   36.17 ± 4.38 times faster than dent check Examples/bigtest.nsi
 ```
 
 ## License
