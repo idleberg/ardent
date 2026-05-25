@@ -135,7 +135,8 @@ match formatter.check(input).unwrap() {
 | `trim_empty_lines` | `bool`              | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks     |
 | `use_tabs`         | `bool`              | `true`               | Indent with tabs instead of spaces                                     |
 
-:white_check_mark: [Why defaulting to tabs is good for accessibility](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890)
+> [!TIP]
+> While many follow their personal preferences in the tabs vs spaces discussion, accessibility is probably the strongest argument to prefer tabs. See [this discussion](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890) for more context.
 
 ## Benchmark
 
