@@ -488,6 +488,14 @@ fn wrap_instruction(
 		return full_line;
 	}
 
+	let cont_indent = format!(
+		"{indent}{}",
+		if options.use_tabs {
+			"\t".to_string()
+		} else {
+			" ".repeat(options.indent_size)
+		}
+	);
 	let mut result_lines: Vec<String> = Vec::new();
 	let mut current = format!("{indent}{keyword}");
 
@@ -495,7 +503,7 @@ fn wrap_instruction(
 		let candidate = format!("{current} {arg}");
 		if candidate.len() + 2 > options.print_width && current.len() > indent.len() {
 			result_lines.push(format!("{current} \\"));
-			current = format!("{indent}{arg}");
+			current = format!("{cont_indent}{arg}");
 		} else {
 			current = candidate;
 		}
@@ -1033,7 +1041,7 @@ mod tests {
 		let result = format_with_print_width(input, 40);
 		assert_eq!(
 			result,
-			"MessageBox MB_OK \"A long string value\" \\\nIDYES true IDNO false\n"
+			"MessageBox MB_OK \"A long string value\" \\\n\tIDYES true IDNO false\n"
 		);
 	}
 
@@ -1043,7 +1051,7 @@ mod tests {
 		let result = format_with_print_width(input, 50);
 		assert_eq!(
 			result,
-			"Section \"Test\"\n\tMessageBox MB_OK \"A long string value\" IDYES \\\n\ttrue IDNO false\nSectionEnd\n"
+			"Section \"Test\"\n\tMessageBox MB_OK \"A long string value\" IDYES \\\n\t\ttrue IDNO false\nSectionEnd\n"
 		);
 	}
 
@@ -1054,7 +1062,7 @@ mod tests {
 		let result = format_with_print_width(input, 40);
 		assert_eq!(
 			result,
-			"DetailPrint \\\n\"This is a very long string that exceeds the print width on its own\"\n"
+			"DetailPrint \\\n\t\"This is a very long string that exceeds the print width on its own\"\n"
 		);
 	}
 
