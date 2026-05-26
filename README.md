@@ -156,6 +156,10 @@ Summary
    36.17 ± 4.38 times faster than dent check Examples/bigtest.nsi
 ```
 
+## Related
+
+- [setup-ardent] – use ardent in you GitHub actions
+
 ## License
 
 This work is licensed under [The MIT License](LICENSE).
