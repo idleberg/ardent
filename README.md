@@ -158,7 +158,7 @@ Summary
 
 ## Related
 
-- [setup-ardent] – use ardent in you GitHub actions
+- [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
 
 ## License
 
