@@ -30,3 +30,7 @@ run = "cargo test"
 [tasks.compare]
 description = "Compare Node.js and Rust formatter output on provided input files"
 run = "bun tasks/compare.ts"
+
+[tasks."docker:build"]
+description = "Build the Docker image"
+run = "docker build -t ardent ."
