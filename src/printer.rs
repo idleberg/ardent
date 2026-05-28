@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
+use crate::FormatterOptions;
 use crate::canonical_casing::CANONICAL_CASING;
 use crate::canonical_includes::CANONICAL_INCLUDES;
 use crate::canonical_parameters::{
@@ -9,22 +10,8 @@ use crate::canonical_parameters::{
 use crate::parser::{CSTNode, CommentStyle, TrailingComment};
 use crate::rules::{CASE, CLOSE, CLOSE_AFTER, MID, OPEN};
 
-/// Options controlling the printer output.
-pub struct PrinterOptions {
-	/// Whether to indent with tabs.
-	pub use_tabs: bool,
-	/// Number of spaces per indent level (ignored when `use_tabs` is `true`).
-	pub indent_size: usize,
-	/// Whether to collapse consecutive blank lines and strip leading/trailing blanks.
-	pub trim_empty_lines: bool,
-	/// Maximum line width before breaking with `\` continuations. `0` disables wrapping.
-	pub print_width: usize,
-	/// The line ending string to use.
-	pub eol: String,
-}
-
 /// Renders a list of CST nodes into a formatted NSIS script string.
-pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
+pub fn print(nodes: &[CSTNode], options: &FormatterOptions, eol: &str) -> String {
 	let mut level: usize = 0;
 	let mut stack: Vec<usize> = Vec::new();
 	let mut lines: Vec<String> = Vec::new();
@@ -38,7 +25,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 		match node {
 			CSTNode::Blank => lines.push(String::new()),
 			CSTNode::Comment { style, value } => {
-				lines.push(print_comment(style, value, level, options));
+				lines.push(print_comment(style, value, level, options, eol));
 			}
 			CSTNode::Label { name, comment } => {
 				lines.push(print_label(name, comment.as_ref(), level, options));
@@ -57,6 +44,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						level,
 						options,
+						eol,
 					));
 					stack.push(level);
 					level += 1;
@@ -69,6 +57,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						case_level,
 						options,
+						eol,
 					));
 					level = case_level + 1;
 				} else if CLOSE.contains(&kw) {
@@ -79,6 +68,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						level,
 						options,
+						eol,
 					));
 				} else if MID.contains(&kw) {
 					let opener_level = stack.last().copied().unwrap_or(0);
@@ -88,6 +78,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						opener_level,
 						options,
+						eol,
 					));
 				} else if CLOSE_AFTER.contains(&kw) {
 					lines.push(print_instruction(
@@ -96,6 +87,7 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						level,
 						options,
+						eol,
 					));
 					level = stack.last().copied().unwrap_or(0) + 1;
 				} else {
@@ -105,18 +97,19 @@ pub fn print(nodes: &[CSTNode], options: &PrinterOptions) -> String {
 						comment.as_ref(),
 						level,
 						options,
+						eol,
 					));
 				}
 			}
 		}
 	}
 
-	let mut result = lines.join(&options.eol);
-	result.push_str(&options.eol);
+	let mut result = lines.join(eol);
+	result.push_str(eol);
 	result
 }
 
-fn indent_str(level: usize, options: &PrinterOptions) -> String {
+fn indent_str(level: usize, options: &FormatterOptions) -> String {
 	if options.use_tabs {
 		"\t".repeat(level)
 	} else {
@@ -128,7 +121,8 @@ fn print_comment(
 	style: &CommentStyle,
 	value: &str,
 	level: usize,
-	options: &PrinterOptions,
+	options: &FormatterOptions,
+	eol: &str,
 ) -> String {
 	let prefix = indent_str(level, options);
 
@@ -156,7 +150,7 @@ fn print_comment(
 				}
 			})
 			.collect::<Vec<_>>()
-			.join(&options.eol)
+			.join(eol)
 	} else {
 		let marker = if *style == CommentStyle::Hash {
 			'#'
@@ -171,7 +165,7 @@ fn print_label(
 	name: &str,
 	comment: Option<&TrailingComment>,
 	level: usize,
-	options: &PrinterOptions,
+	options: &FormatterOptions,
 ) -> String {
 	let mut line = format!("{}{}:", indent_str(level, options), name);
 	if let Some(c) = comment {
@@ -390,7 +384,8 @@ fn print_instruction(
 	args: &[String],
 	comment: Option<&TrailingComment>,
 	level: usize,
-	options: &PrinterOptions,
+	options: &FormatterOptions,
+	eol: &str,
 ) -> String {
 	let kw_lower = keyword.to_lowercase();
 	let canonical_kw = CANONICAL_CASING
@@ -429,6 +424,7 @@ fn print_instruction(
 			&indent,
 			is_arithmetic,
 			options,
+			eol,
 		);
 	}
 
@@ -463,7 +459,8 @@ fn wrap_instruction(
 	trailing_comment: Option<&str>,
 	indent: &str,
 	is_arithmetic: bool,
-	options: &PrinterOptions,
+	options: &FormatterOptions,
+	eol: &str,
 ) -> String {
 	let join_fn = |tokens: &[String]| -> String {
 		if is_arithmetic {
@@ -514,7 +511,7 @@ fn wrap_instruction(
 	}
 	result_lines.push(current);
 
-	result_lines.join(&options.eol)
+	result_lines.join(eol)
 }
 
 fn is_block_open(node: &CSTNode) -> bool {
@@ -609,13 +606,14 @@ mod tests {
 		let nodes = parse(input).unwrap();
 		print(
 			&nodes,
-			&PrinterOptions {
+			&FormatterOptions {
 				use_tabs: true,
 				indent_size: 2,
 				trim_empty_lines: true,
 				print_width: 0,
-				eol: "\n".to_string(),
+				..Default::default()
 			},
+			"\n",
 		)
 	}
 
@@ -797,13 +795,14 @@ mod tests {
 		let nodes = parse("section \"Test\"\nDetailPrint \"hi\"\nsectionend\n").unwrap();
 		let result = print(
 			&nodes,
-			&PrinterOptions {
+			&FormatterOptions {
 				use_tabs: false,
 				indent_size: 4,
 				trim_empty_lines: true,
 				print_width: 0,
-				eol: "\n".to_string(),
+				..Default::default()
 			},
+			"\n",
 		);
 		assert_eq!(
 			result,
@@ -1018,13 +1017,14 @@ mod tests {
 		let nodes = parse(input).unwrap();
 		print(
 			&nodes,
-			&PrinterOptions {
+			&FormatterOptions {
 				use_tabs: true,
 				indent_size: 2,
 				trim_empty_lines: true,
 				print_width,
-				eol: "\n".to_string(),
+				..Default::default()
 			},
+			"\n",
 		)
 	}
 

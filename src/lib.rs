@@ -36,7 +36,7 @@ pub mod printer;
 pub mod rules;
 
 use parser::parse;
-use printer::{PrinterOptions, print};
+use printer::print;
 
 const DEFAULT_INDENT_SIZE: usize = 2;
 const DEFAULT_PRINT_WIDTH: usize = 120;
@@ -138,16 +138,7 @@ impl Formatter {
 		let nodes = parse(input)?;
 		let eol = self.detect_eol(input);
 
-		Ok(print(
-			&nodes,
-			&PrinterOptions {
-				use_tabs: self.options.use_tabs,
-				indent_size: self.options.indent_size,
-				trim_empty_lines: self.options.trim_empty_lines,
-				print_width: self.options.print_width,
-				eol,
-			},
-		))
+		Ok(print(&nodes, &self.options, &eol))
 	}
 
 	/// Checks whether an NSIS script is already formatted.
