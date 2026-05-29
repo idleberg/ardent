@@ -827,12 +827,12 @@ mod tests {
 
 	#[test]
 	fn parse_single_quoted_with_escaped_quote() {
-		let nodes = parse("OutFile 'Yolo $\\'This$\\''\n").unwrap();
+		let nodes = parse("OutFile 'Quote $\\'This$\\''\n").unwrap();
 		assert_eq!(
 			nodes,
 			vec![CSTNode::Instruction {
 				keyword: "OutFile".to_string(),
-				args: vec!["'Yolo $\\'This$\\''".to_string()],
+				args: vec!["'Quote $\\'This$\\''".to_string()],
 				comment: None,
 			}]
 		);
@@ -840,12 +840,12 @@ mod tests {
 
 	#[test]
 	fn parse_backtick_with_escaped_backtick() {
-		let nodes = parse("OutFile `Yolo $\\`This$\\``\n").unwrap();
+		let nodes = parse("OutFile `Quote $\\`This$\\``\n").unwrap();
 		assert_eq!(
 			nodes,
 			vec![CSTNode::Instruction {
 				keyword: "OutFile".to_string(),
-				args: vec!["`Yolo $\\`This$\\``".to_string()],
+				args: vec!["`Quote $\\`This$\\``".to_string()],
 				comment: None,
 			}]
 		);
