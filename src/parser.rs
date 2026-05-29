@@ -455,10 +455,10 @@ peg::parser! {
 				"\"" ("\"\"" / "$\\\"" / [^ '"' | '\r' | '\n'])* "\""
 			  ) { s.to_string() }
 			/ s:$(
-				"'" [^ '\'' | '\r' | '\n']* "'"
+				"'" ("$\\'" / [^ '\'' | '\r' | '\n'])* "'"
 			  ) { s.to_string() }
 			/ s:$(
-				"`" [^ '`' | '\r' | '\n']* "`"
+				"`" ("$\\`" / [^ '`' | '\r' | '\n'])* "`"
 			  ) { s.to_string() }
 
 		rule bare_token() -> String
@@ -820,6 +820,32 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "DetailPrint".to_string(),
 				args: vec!["`hello world`".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_single_quoted_with_escaped_quote() {
+		let nodes = parse("OutFile 'Yolo $\\'This$\\''\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "OutFile".to_string(),
+				args: vec!["'Yolo $\\'This$\\''".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_backtick_with_escaped_backtick() {
+		let nodes = parse("OutFile `Yolo $\\`This$\\``\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "OutFile".to_string(),
+				args: vec!["`Yolo $\\`This$\\``".to_string()],
 				comment: None,
 			}]
 		);
