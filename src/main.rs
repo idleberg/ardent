@@ -74,6 +74,13 @@ struct FormattingArgs {
 	#[arg(short = 's', long, help = "Indent with spaces instead of tabs")]
 	use_spaces: bool,
 
+	#[arg(
+		short = 'q',
+		long,
+		help = "Prefer single quotes instead of double quotes"
+	)]
+	single_quote: bool,
+
 	#[arg(short = 'T', long = "no-trim", help = "Do not trim empty lines")]
 	no_trim: bool,
 
@@ -110,6 +117,7 @@ fn dent_options_from(args: &FormattingArgs) -> FormatterOptions {
 		trim_empty_lines: !args.no_trim,
 		use_tabs: !args.use_spaces,
 		print_width: args.print_width,
+		single_quote: args.single_quote,
 	}
 }
 

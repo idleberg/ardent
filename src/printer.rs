@@ -175,10 +175,97 @@ fn print_label(
 	line
 }
 
-fn normalize_arg(arg: &str, instr_params: Option<&HashMap<&str, &str>>) -> String {
-	if arg.starts_with('"') || arg.starts_with('\'') || arg.starts_with('`') || arg.starts_with('$')
-	{
+fn strip_quote_delimiters(arg: &str) -> Option<(char, &str)> {
+	let delim = arg.as_bytes().first().copied()?;
+	if delim == b'"' || delim == b'\'' || delim == b'`' {
+		let inner = &arg[1..arg.len() - 1];
+		Some((delim as char, inner))
+	} else {
+		None
+	}
+}
+
+fn unescape_double_inner(inner: &str) -> String {
+	inner.replace("$\\\"", "\"").replace("\"\"", "\"")
+}
+
+fn escape_for_double(inner: &str) -> String {
+	inner.replace('"', "$\\\"")
+}
+
+fn normalize_quotes(arg: &str, single_quote: bool) -> String {
+	let Some((delim, inner)) = strip_quote_delimiters(arg) else {
 		return arg.to_string();
+	};
+
+	let target = if single_quote { '\'' } else { '"' };
+
+	if delim == target {
+		return arg.to_string();
+	}
+
+	// When source is double-quoted, unescape before analyzing content
+	let content = if delim == '"' {
+		unescape_double_inner(inner)
+	} else {
+		inner.to_string()
+	};
+
+	let has_double = content.contains('"');
+	let has_single = content.contains('\'');
+	let has_backtick = content.contains('`');
+
+	if !has_double && !has_single {
+		// No conflicts — use target directly
+		if target == '"' {
+			return format!("\"{content}\"");
+		}
+		return format!("'{content}'");
+	}
+
+	let has_target = if target == '"' {
+		has_double
+	} else {
+		has_single
+	};
+
+	if !has_target {
+		// Target delimiter not in content — use target
+		if target == '"' {
+			return format!("\"{content}\"");
+		}
+		return format!("'{content}'");
+	}
+
+	// Target delimiter is in content — try alternatives to avoid escaping
+	let alt = if target == '"' { '\'' } else { '"' };
+	let has_alt = if alt == '"' { has_double } else { has_single };
+
+	if !has_alt {
+		if alt == '"' {
+			return format!("\"{content}\"");
+		}
+		return format!("'{content}'");
+	}
+
+	if !has_backtick {
+		return format!("`{content}`");
+	}
+
+	// All three quote chars present — must escape; only double quotes support escaping
+	format!("\"{}\"", escape_for_double(&content))
+}
+
+fn normalize_arg(
+	arg: &str,
+	instr_params: Option<&HashMap<&str, &str>>,
+	single_quote: bool,
+) -> String {
+	if arg.starts_with('$') {
+		return arg.to_string();
+	}
+	if arg.starts_with('"') || arg.starts_with('\'') || arg.starts_with('`') {
+		return normalize_quotes(arg, single_quote);
 	}
 
 	let lower = arg.to_lowercase();
@@ -404,7 +491,7 @@ fn print_instruction(
 
 	let normalized: Vec<String> = split_args
 		.iter()
-		.map(|a| normalize_arg(a, instr_params))
+		.map(|a| normalize_arg(a, instr_params, options.single_quote))
 		.collect();
 
 	let joined = if is_arithmetic {
@@ -869,7 +956,7 @@ mod tests {
 
 	#[test]
 	fn normalize_arg_preserves_unknown_bare() {
-		let result = normalize_arg("UNKNOWN_TOKEN", None);
+		let result = normalize_arg("UNKNOWN_TOKEN", None, false);
 		assert_eq!(result, "UNKNOWN_TOKEN");
 	}
 
@@ -1090,5 +1177,132 @@ mod tests {
 		let first = format_with_print_width(input, 40);
 		let second = format_with_print_width(&first, 40);
 		assert_eq!(first, second);
+	}
+
+	// --- Quote normalization tests ---
+
+	#[test]
+	fn quotes_single_to_double() {
+		assert_eq!(normalize_quotes("'hello world'", false), "\"hello world\"");
+	}
+
+	#[test]
+	fn quotes_backtick_to_double() {
+		assert_eq!(normalize_quotes("`hello world`", false), "\"hello world\"");
+	}
+
+	#[test]
+	fn quotes_double_unchanged_when_target_double() {
+		assert_eq!(
+			normalize_quotes("\"hello world\"", false),
+			"\"hello world\""
+		);
+	}
+
+	#[test]
+	fn quotes_double_to_single() {
+		assert_eq!(normalize_quotes("\"hello world\"", true), "'hello world'");
+	}
+
+	#[test]
+	fn quotes_single_with_double_inside_stays_single() {
+		assert_eq!(
+			normalize_quotes("'He said \"Hi\"'", false),
+			"'He said \"Hi\"'"
+		);
+	}
+
+	#[test]
+	fn quotes_backtick_with_double_inside_uses_single() {
+		assert_eq!(
+			normalize_quotes("`He said \"Hi\"`", false),
+			"'He said \"Hi\"'"
+		);
+	}
+
+	#[test]
+	fn quotes_backtick_with_both_uses_backtick() {
+		assert_eq!(
+			normalize_quotes("`He said \"I'll\"`", false),
+			"`He said \"I'll\"`"
+		);
+	}
+
+	#[test]
+	fn quotes_all_three_chars_escapes_to_double() {
+		// Double-quoted source with escaped quotes, and content has ' and `
+		assert_eq!(
+			normalize_quotes("\"a $\\\"quote$\\\" with ' and `\"", true),
+			"\"a $\\\"quote$\\\" with ' and `\""
+		);
+	}
+
+	#[test]
+	fn quotes_empty_single_to_double() {
+		assert_eq!(normalize_quotes("''", false), "\"\"");
+	}
+
+	#[test]
+	fn quotes_empty_backtick_to_double() {
+		assert_eq!(normalize_quotes("``", false), "\"\"");
+	}
+
+	#[test]
+	fn quotes_exec_idiom_stays_single() {
+		assert_eq!(
+			normalize_quotes("'\"$INSTDIR\\Uninstall.exe\"'", false),
+			"'\"$INSTDIR\\Uninstall.exe\"'"
+		);
+	}
+
+	#[test]
+	fn quotes_double_with_escape_to_single() {
+		assert_eq!(
+			normalize_quotes("\"He said $\\\"Hi$\\\"\"", true),
+			"'He said \"Hi\"'"
+		);
+	}
+
+	#[test]
+	fn quotes_double_with_double_double_escape_to_single() {
+		assert_eq!(
+			normalize_quotes("\"He said \"\"Hi\"\"\"", true),
+			"'He said \"Hi\"'"
+		);
+	}
+
+	#[test]
+	fn quotes_idempotent_double() {
+		let input = "'hello'";
+		let first = normalize_quotes(input, false);
+		let second = normalize_quotes(&first, false);
+		assert_eq!(first, second);
+	}
+
+	#[test]
+	fn quotes_idempotent_single() {
+		let input = "\"hello\"";
+		let first = normalize_quotes(input, true);
+		let second = normalize_quotes(&first, true);
+		assert_eq!(first, second);
+	}
+
+	#[test]
+	fn quotes_integration_single_to_double() {
+		let input = "DetailPrint 'hello world'\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "DetailPrint \"hello world\"\n");
+	}
+
+	#[test]
+	fn quotes_integration_backtick_to_double() {
+		let input = "DetailPrint `hello world`\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, "DetailPrint \"hello world\"\n");
+	}
+
+	#[test]
+	fn quotes_dollar_arg_unchanged() {
+		assert_eq!(normalize_arg("$INSTDIR", None, false), "$INSTDIR");
 	}
 }
