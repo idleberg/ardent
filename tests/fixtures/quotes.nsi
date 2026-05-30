@@ -1,20 +1,20 @@
 OutFile "quotes.exe"
 
 Section
-	OutFile "installer"
-	OutFile 'installer'
-	OutFile `installer`
+	DetailPrint "installer"
+	DetailPrint 'installer'
+	DetailPrint `installer`
 
-	OutFile "Installer with 'quote'"
-	OutFile 'Installer with "quote"'
-	OutFile `Installer with "quote"`
+	DetailPrint "Installer with 'quote'"
+	DetailPrint 'Installer with "quote"'
+	DetailPrint `Installer with "quote"`
 
-	OutFile "Installer with $\"quote$\""
-	OutFile 'Installer with $\'quote$\''
-	OutFile `Installer with $\"quote$\"`
+	DetailPrint "Installer with $\"quote$\""
+	DetailPrint 'Installer with $\'quote$\''
+	DetailPrint `Installer with $\"quote$\"`
 
-	OutFile "She said $\"it's done$\""
-	OutFile `She said $\"it's done$\"`
+	DetailPrint "She said $\"it's done$\""
+	DetailPrint `She said $\"it's done$\"`
 
-	OutFile "All $\"three$\" 'quote' `types`"
+	DetailPrint "All $\"three$\" 'quote' `types`"
 SectionEnd
