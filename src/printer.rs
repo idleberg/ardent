@@ -185,8 +185,12 @@ fn strip_quote_delimiters(arg: &str) -> Option<(char, &str)> {
 	}
 }
 
-fn unescape_double_inner(inner: &str) -> String {
-	inner.replace("$\\\"", "\"").replace("\"\"", "\"")
+fn unescape_inner(inner: &str) -> String {
+	inner
+		.replace("$\\\"", "\"")
+		.replace("\"\"", "\"")
+		.replace("$\\'", "'")
+		.replace("$\\`", "`")
 }
 
 fn escape_for_double(inner: &str) -> String {
@@ -194,29 +198,18 @@ fn escape_for_double(inner: &str) -> String {
 }
 
 fn normalize_quotes(arg: &str, single_quote: bool) -> String {
-	let Some((delim, inner)) = strip_quote_delimiters(arg) else {
+	let Some((_, inner)) = strip_quote_delimiters(arg) else {
 		return arg.to_string();
 	};
 
 	let target = if single_quote { '\'' } else { '"' };
-
-	if delim == target {
-		return arg.to_string();
-	}
-
-	// When source is double-quoted, unescape before analyzing content
-	let content = if delim == '"' {
-		unescape_double_inner(inner)
-	} else {
-		inner.to_string()
-	};
+	let content = unescape_inner(inner);
 
 	let has_double = content.contains('"');
 	let has_single = content.contains('\'');
 	let has_backtick = content.contains('`');
 
 	if !has_double && !has_single {
-		// No conflicts — use target directly
 		if target == '"' {
 			return format!("\"{content}\"");
 		}
@@ -230,14 +223,12 @@ fn normalize_quotes(arg: &str, single_quote: bool) -> String {
 	};
 
 	if !has_target {
-		// Target delimiter not in content — use target
 		if target == '"' {
 			return format!("\"{content}\"");
 		}
 		return format!("'{content}'");
 	}
 
-	// Target delimiter is in content — try alternatives to avoid escaping
 	let alt = if target == '"' { '\'' } else { '"' };
 	let has_alt = if alt == '"' { has_double } else { has_single };
 
@@ -252,7 +243,6 @@ fn normalize_quotes(arg: &str, single_quote: bool) -> String {
 		return format!("`{content}`");
 	}
 
-	// All three quote chars present — must escape; only double quotes support escaping
 	format!("\"{}\"", escape_for_double(&content))
 }
 

@@ -200,6 +200,27 @@ fn intop_right_shift_not_confused_with_unsigned() {
 }
 
 #[test]
+fn format_fixture_quotes() {
+	let input = include_str!("./fixtures/quotes.nsi");
+	let f = formatter_lf();
+	let result = f.format(input).unwrap();
+	assert!(result.contains("OutFile \"installer\""));
+	assert!(result.contains("OutFile 'Installer with \"quote\"'"));
+	assert!(result.contains("OutFile \"Installer with 'quote'\""));
+	assert!(result.contains("OutFile `She said \"it's done\"`"));
+	assert!(result.contains("OutFile \"All $\\\"three$\\\" 'quote' `types`\""));
+}
+
+#[test]
+fn idempotent_quotes() {
+	let input = include_str!("./fixtures/quotes.nsi");
+	let f = formatter_lf();
+	let first = f.format(input).unwrap();
+	let second = f.format(&first).unwrap();
+	assert_eq!(first, second);
+}
+
+#[test]
 fn error_on_zero_indent_size_with_spaces() {
 	let result = Formatter::new(FormatterOptions {
 		use_tabs: false,
