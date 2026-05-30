@@ -79,6 +79,8 @@ pub struct FormatterOptions {
 	pub use_tabs: bool,
 	/// Maximum line width before breaking with `\` continuations. `0` disables wrapping.
 	pub print_width: usize,
+	/// Whether to prefer single quotes (`true`) or double quotes (`false`).
+	pub single_quote: bool,
 }
 
 impl Default for FormatterOptions {
@@ -89,6 +91,7 @@ impl Default for FormatterOptions {
 			trim_empty_lines: true,
 			use_tabs: true,
 			print_width: DEFAULT_PRINT_WIDTH,
+			single_quote: false,
 		}
 	}
 }
