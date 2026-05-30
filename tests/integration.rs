@@ -204,11 +204,11 @@ fn format_fixture_quotes() {
 	let input = include_str!("./fixtures/quotes.nsi");
 	let f = formatter_lf();
 	let result = f.format(input).unwrap();
-	assert!(result.contains("OutFile \"installer\""));
-	assert!(result.contains("OutFile 'Installer with \"quote\"'"));
-	assert!(result.contains("OutFile \"Installer with 'quote'\""));
-	assert!(result.contains("OutFile `She said \"it's done\"`"));
-	assert!(result.contains("OutFile \"All $\\\"three$\\\" 'quote' `types`\""));
+	assert!(result.contains("DetailPrint \"installer\""));
+	assert!(result.contains("DetailPrint 'Installer with \"quote\"'"));
+	assert!(result.contains("DetailPrint \"Installer with 'quote'\""));
+	assert!(result.contains("DetailPrint `She said \"it's done\"`"));
+	assert!(result.contains("DetailPrint \"All $\\\"three$\\\" 'quote' `types`\""));
 }
 
 #[test]
