@@ -33,6 +33,12 @@ scoop install nsis/ardent
 brew install idleberg/asahi/ardent
 ```
 
+### Nix
+
+```sh
+nix profile install github:idleberg/ardent
+```
+
 ### Source
 
 ```sh
