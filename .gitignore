@@ -1,4 +1,5 @@
 # build artifacts
+/result
 /target
 
 # all things nodejs
