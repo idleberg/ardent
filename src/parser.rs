@@ -436,9 +436,13 @@ peg::parser! {
 			}
 
 		rule macro_keyword() -> String
-			= kw:$("${" ['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '.']* "}") {
+			= kw:$("${" macro_keyword_inner()+ "}") {
 				kw.to_string()
 			}
+
+		rule macro_keyword_inner()
+			= "${" macro_keyword_inner()+ "}"
+			/ !("${" / "}") [^ ' ' | '\t' | '\r' | '\n']
 
 		rule plugin_call_keyword() -> String
 			= kw:$(['a'..='z' | 'A'..='Z'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']* "::" ['a'..='z' | 'A'..='Z'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
@@ -627,6 +631,64 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "${If}".to_string(),
 				args: vec!["$0".to_string(), "==".to_string(), "1".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_macro_keyword_with_colons() {
+		let nodes = parse("${IUnknown::Release} $0 \"\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "${IUnknown::Release}".to_string(),
+				args: vec!["$0".to_string(), "\"\"".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_macro_keyword_with_single_colon() {
+		let nodes = parse("${Using:StrFunc} StrStr\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "${Using:StrFunc}".to_string(),
+				args: vec!["StrStr".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_macro_keyword_nested() {
+		let nodes = parse("${NSD_Create${TYPE}} $R3u $R4u $R5u $R6u $R7\n").unwrap();
+		assert_eq!(
+			nodes[0],
+			CSTNode::Instruction {
+				keyword: "${NSD_Create${TYPE}}".to_string(),
+				args: vec![
+					"$R3u".to_string(),
+					"$R4u".to_string(),
+					"$R5u".to_string(),
+					"$R6u".to_string(),
+					"$R7".to_string(),
+				],
+				comment: None,
+			}
+		);
+	}
+
+	#[test]
+	fn parse_macro_keyword_double_nested() {
+		let nodes = parse("${${Name}}\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "${${Name}}".to_string(),
+				args: vec![],
 				comment: None,
 			}]
 		);
