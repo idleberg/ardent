@@ -518,18 +518,22 @@ pub fn preprocess(input: &str) -> String {
 
 	while i < len {
 		if bytes[i] == b'\\' {
-			// Check for \<newline> continuation
-			if i + 1 < len && bytes[i + 1] == b'\n' {
+			// Check for \<optional whitespace><newline> continuation
+			let mut j = i + 1;
+			while j < len && (bytes[j] == b' ' || bytes[j] == b'\t') {
+				j += 1;
+			}
+			if j < len && bytes[j] == b'\n' {
 				result.push(' ');
-				i += 2;
+				i = j + 1;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
 				}
 				continue;
 			}
-			if i + 2 < len && bytes[i + 1] == b'\r' && bytes[i + 2] == b'\n' {
+			if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
 				result.push(' ');
-				i += 3;
+				i = j + 2;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
 				}
@@ -978,6 +982,18 @@ mod tests {
 	fn preprocess_no_continuation() {
 		let result = preprocess("foo \\ bar");
 		assert_eq!(result, "foo \\ bar");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_trailing_whitespace_lf() {
+		let result = preprocess("foo \\  \n  bar");
+		assert_eq!(result, "foo  bar");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_trailing_whitespace_crlf() {
+		let result = preprocess("foo \\ \t\r\n  bar");
+		assert_eq!(result, "foo  bar");
 	}
 
 	#[test]
