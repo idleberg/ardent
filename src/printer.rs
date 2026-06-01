@@ -177,7 +177,7 @@ fn print_label(
 
 fn strip_quote_delimiters(arg: &str) -> Option<(char, &str)> {
 	let delim = arg.as_bytes().first().copied()?;
-	if delim == b'"' || delim == b'\'' || delim == b'`' {
+	if (delim == b'"' || delim == b'\'' || delim == b'`') && arg.len() >= 2 {
 		let inner = &arg[1..arg.len() - 1];
 		Some((delim as char, inner))
 	} else {
@@ -1294,5 +1294,23 @@ mod tests {
 	#[test]
 	fn quotes_dollar_arg_unchanged() {
 		assert_eq!(normalize_arg("$INSTDIR", None, false), "$INSTDIR");
+	}
+
+	#[test]
+	fn strip_quote_delimiters_single_char() {
+		assert_eq!(strip_quote_delimiters("\""), None);
+		assert_eq!(strip_quote_delimiters("'"), None);
+		assert_eq!(strip_quote_delimiters("`"), None);
+	}
+
+	#[test]
+	fn strip_quote_delimiters_empty() {
+		assert_eq!(strip_quote_delimiters(""), None);
+	}
+
+	#[test]
+	fn format_stray_quote_no_panic() {
+		let result = format_with_defaults("Abort $ErrorMessage\"\n");
+		assert!(result.contains("Abort"));
 	}
 }
