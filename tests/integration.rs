@@ -221,6 +221,38 @@ fn idempotent_quotes() {
 }
 
 #[test]
+fn format_fixture_unicode() {
+	let input = include_str!("./fixtures/unicode.nsi");
+	let f = formatter_lf();
+	let result = f.format(input).unwrap();
+	assert!(result.contains("DetailPrint \"שלום, עולם!\""));
+	assert!(result.contains("DetailPrint \"مرحبا بالعالم!\""));
+	assert!(result.contains("DetailPrint \"こんにちは、世界！\""));
+	assert!(result.contains("DetailPrint \"你好，世界！\""));
+	assert!(result.contains("DetailPrint \"привет, мир!\""));
+	assert!(result.contains("DetailPrint \"안녕하세요!\""));
+	assert!(result.contains("DetailPrint \"สวัสดีชาวโลก!\""));
+	assert!(result.contains("DetailPrint \"Γεια σου, Κόσμε!\""));
+}
+
+#[test]
+fn idempotent_unicode() {
+	let input = include_str!("./fixtures/unicode.nsi");
+	let f = formatter_lf();
+	let first = f.format(input).unwrap();
+	let second = f.format(&first).unwrap();
+	assert_eq!(first, second);
+}
+
+#[test]
+fn format_unicode_with_bom() {
+	let input = "\u{FEFF}; BOM test\nDetailPrint \"שלום\"\n";
+	let f = formatter_lf();
+	let result = f.format(input).unwrap();
+	assert_eq!(result, "; BOM test\nDetailPrint \"שלום\"\n");
+}
+
+#[test]
 fn error_on_zero_indent_size_with_spaces() {
 	let result = Formatter::new(FormatterOptions {
 		use_tabs: false,

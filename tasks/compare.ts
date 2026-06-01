@@ -53,7 +53,8 @@ for (const f of files) {
 
 	try {
 		const bunResult =
-			await $`bunx --bun -p @nsis/dent-cli dent format ${f}`.quiet().nothrow();
+			await $`node /Users/jan/Repositories/_nsis/node-dent/packages/dent-cli/src/main.ts format ${f}`.quiet().nothrow();
+			// await $`bunx --bun -p @nsis/dent-cli dent format ${f}`.quiet().nothrow();
 		const rustResult =
 			await $`./target/release/ardent format ${f}`.quiet().nothrow();
 

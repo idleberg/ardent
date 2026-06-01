@@ -516,35 +516,39 @@ pub fn preprocess(input: &str) -> String {
 	let bytes = without_bom.as_bytes();
 	let len = bytes.len();
 	let mut i = 0;
+	let mut copy_start = 0;
 
 	while i < len {
 		if bytes[i] == b'\\' {
-			// Check for \<optional whitespace><newline> continuation
 			let mut j = i + 1;
 			while j < len && (bytes[j] == b' ' || bytes[j] == b'\t') {
 				j += 1;
 			}
 			if j < len && bytes[j] == b'\n' {
+				result.push_str(&without_bom[copy_start..i]);
 				result.push(' ');
 				i = j + 1;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
 				}
+				copy_start = i;
 				continue;
 			}
 			if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
+				result.push_str(&without_bom[copy_start..i]);
 				result.push(' ');
 				i = j + 2;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
 				}
+				copy_start = i;
 				continue;
 			}
 		}
-		result.push(bytes[i] as char);
 		i += 1;
 	}
 
+	result.push_str(&without_bom[copy_start..]);
 	result
 }
 
@@ -578,6 +582,20 @@ mod tests {
 				CSTNode::Blank,
 			]
 		);
+	}
+
+	#[test]
+	fn preprocess_preserves_unicode() {
+		let input = "\u{FEFF}DetailPrint \"שלום\"\n";
+		let result = preprocess(input);
+		assert_eq!(result, "DetailPrint \"שלום\"\n");
+	}
+
+	#[test]
+	fn preprocess_preserves_unicode_with_continuation() {
+		let input = "DetailPrint \\\n  \"こんにちは\"\n";
+		let result = preprocess(input);
+		assert_eq!(result, "DetailPrint  \"こんにちは\"\n");
 	}
 
 	#[test]
