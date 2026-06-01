@@ -382,7 +382,7 @@ peg::parser! {
 			}
 
 		rule label_line() -> CSTNode
-			= _() name:$(['a'..='z' | 'A'..='Z' | '_' | '.'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '.']*) ":" !":"
+			= _() name:$(label_segment()+) ":" !":"
 			  trailing:trailing_comment()? _() line_end() {
 				CSTNode::Label {
 					name: name.to_string(),
@@ -391,7 +391,7 @@ peg::parser! {
 			}
 
 		rule label_with_instruction() -> Vec<CSTNode>
-			= _() name:$(['a'..='z' | 'A'..='Z' | '_' | '.'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '.']*) ":" !":"
+			= _() name:$(label_segment()+) ":" !":"
 			  _() kw:keyword() args:arguments() trailing:trailing_comment()? _() line_end() {
 				vec![
 					CSTNode::Label {
@@ -405,6 +405,14 @@ peg::parser! {
 					},
 				]
 			}
+
+		rule label_segment()
+			= "${" label_brace_inner()* "}"
+			/ ['a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '.' | '-' | '/']
+
+		rule label_brace_inner()
+			= "${" label_brace_inner()* "}"
+			/ (!"}" [_])
 
 		rule instruction_line() -> CSTNode
 			= _() kw:keyword() args:arguments() trailing:trailing_comment()? _() line_end() {
@@ -920,6 +928,54 @@ mod tests {
 			nodes,
 			vec![CSTNode::Label {
 				name: ".onInit".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_label_with_variable_interpolation() {
+		let nodes = parse("WordFunc_WordFind${_WORDFUNC_S}_restart:\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "WordFunc_WordFind${_WORDFUNC_S}_restart".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_label_with_nested_variable_interpolation() {
+		let nodes = parse("${${_Logic}Else}:\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "${${_Logic}Else}".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_hyphenated_label() {
+		let nodes = parse("LineFind-TextCompare:\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "LineFind-TextCompare".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_label_with_slash() {
+		let nodes = parse("WordFunc_WordAdd${_S}_/word:\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "WordFunc_WordAdd${_S}_/word".to_string(),
 				comment: None,
 			}]
 		);
