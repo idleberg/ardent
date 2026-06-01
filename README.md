@@ -16,32 +16,32 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ### Cargo
 
-```sh
+```shell
 cargo install ardent
 ```
 
 ### Scoop
 
-```sh
+```shell
 scoop bucket add nsis https://github.com/NSIS-Dev/scoop-nsis
 scoop install nsis/ardent
 ```
 
 ### Homebrew
 
-```sh
+```shell
 brew install idleberg/asahi/ardent
 ```
 
 ### Nix
 
-```sh
+```shell
 nix profile install github:idleberg/ardent
 ```
 
 ### Source
 
-```sh
+```shell
 git clone https://github.com/idleberg/ardent.git
 cd ardent
 cargo build --release
@@ -68,7 +68,7 @@ Options:
 
 Formats one or more `.nsi` / `.nsh` files.
 
-```sh
+```shell
 # Print formatted output to stdout
 ardent format installer.nsi
 
@@ -82,7 +82,7 @@ See `ardent format --help` for available options.
 
 Checks whether files are already formatted.
 
-```sh
+```shell
 # Check only (reports drift)
 ardent check src/**/*.nsi
 
