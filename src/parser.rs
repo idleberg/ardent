@@ -365,6 +365,7 @@ peg::parser! {
 
 		rule blank_line() -> CSTNode
 			= _() eol() { CSTNode::Blank }
+			/ [' ' | '\t']+ eof() { CSTNode::Blank }
 
 		rule comment_line() -> CSTNode
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) line_end() {
@@ -561,6 +562,22 @@ mod tests {
 	fn parse_blank_line() {
 		let nodes = parse("\n").unwrap();
 		assert_eq!(nodes, vec![CSTNode::Blank]);
+	}
+
+	#[test]
+	fn parse_trailing_whitespace_at_eof() {
+		let nodes = parse("FunctionEnd\n    ").unwrap();
+		assert_eq!(
+			nodes,
+			vec![
+				CSTNode::Instruction {
+					keyword: "FunctionEnd".to_string(),
+					args: vec![],
+					comment: None,
+				},
+				CSTNode::Blank,
+			]
+		);
 	}
 
 	#[test]
