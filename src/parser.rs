@@ -359,6 +359,7 @@ peg::parser! {
 			/ n:blank_line() { vec![n] }
 			/ n:comment_line() { vec![n] }
 			/ label_with_instruction()
+			/ n:quoted_label_line() { vec![n] }
 			/ n:label_line() { vec![n] }
 			/ n:instruction_line() { vec![n] }
 
@@ -378,6 +379,15 @@ peg::parser! {
 				CSTNode::Comment {
 					style: CommentStyle::Block,
 					value: value.to_string(),
+				}
+			}
+
+		rule quoted_label_line() -> CSTNode
+			= _() "\"" name:$((!":\"" [^ '"'])*) ":" "\"" !":"
+			  trailing:trailing_comment()? _() line_end() {
+				CSTNode::Label {
+					name: name.to_string(),
+					comment: trailing,
 				}
 			}
 
@@ -1014,6 +1024,30 @@ mod tests {
 			nodes,
 			vec![CSTNode::Label {
 				name: "${${_Logic}Else}".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_quoted_label() {
+		let nodes = parse("\"upgradedll.upgrade_${UPGRADEDLL_UNIQUE}:\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "upgradedll.upgrade_${UPGRADEDLL_UNIQUE}".to_string(),
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_quoted_label_with_variable() {
+		let nodes = parse("\"${__InstallLib_Helper_InitSession_Label}:\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Label {
+				name: "${__InstallLib_Helper_InitSession_Label}".to_string(),
 				comment: None,
 			}]
 		);
