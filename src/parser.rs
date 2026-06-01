@@ -455,7 +455,7 @@ peg::parser! {
 			/ !("${" / "}") [^ ' ' | '\t' | '\r' | '\n']
 
 		rule plugin_call_keyword() -> String
-			= kw:$(['a'..='z' | 'A'..='Z'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']* "::" ['a'..='z' | 'A'..='Z'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
+			= kw:$(['a'..='z' | 'A'..='Z'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']* "::" ['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
 				kw.to_string()
 			}
 
@@ -716,6 +716,19 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "nsDialogs::Create".to_string(),
 				args: vec!["1018".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_plugin_call_underscore_prefix() {
+		let nodes = parse("nsProcess::_FindProcess \"foo.exe\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "nsProcess::_FindProcess".to_string(),
+				args: vec!["\"foo.exe\"".to_string()],
 				comment: None,
 			}]
 		);
