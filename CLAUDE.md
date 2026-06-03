@@ -45,7 +45,7 @@ This is the ground truth for command names, parameter order, and valid options.
 ## Testing Requirements
 
 - Every new feature and bugfix must include a corresponding test.
-- When modifying formatter behavior, verify that existing tests still pass — and update them if the expected output intentionally changed.
+- When modifying formatter behavior, verify that existing tests still pass — and update them if the expected output intentionally changed. Editing existing tests always requires user confirmation.
 - Run `mise run test` (or the full `mise run checks`) to confirm.
 
 ## Code Style
