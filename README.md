@@ -16,32 +16,32 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ### Cargo
 
-```sh
+```shell
 cargo install ardent
 ```
 
 ### Scoop
 
-```sh
+```shell
 scoop bucket add nsis https://github.com/NSIS-Dev/scoop-nsis
 scoop install nsis/ardent
 ```
 
 ### Homebrew
 
-```sh
+```shell
 brew install idleberg/asahi/ardent
 ```
 
 ### Nix
 
-```sh
+```shell
 nix profile install github:idleberg/ardent
 ```
 
 ### Source
 
-```sh
+```shell
 git clone https://github.com/idleberg/ardent.git
 cd ardent
 cargo build --release
@@ -68,7 +68,7 @@ Options:
 
 Formats one or more `.nsi` / `.nsh` files.
 
-```sh
+```shell
 # Print formatted output to stdout
 ardent format installer.nsi
 
@@ -82,7 +82,7 @@ See `ardent format --help` for available options.
 
 Checks whether files are already formatted.
 
-```sh
+```shell
 # Check only (reports drift)
 ardent check src/**/*.nsi
 
@@ -138,6 +138,7 @@ match formatter.check(input).unwrap() {
 | `end_of_line`      | `Option<EndOfLine>` | `None` (auto-detect) | Force CRLF or LF line endings                                          |
 | `indent_size`      | `usize`             | `2`                  | Spaces per indent level (ignored when using tabs)                      |
 | `print_width`      | `usize`             | `120`                | Maximum line width before wrapping with `\` continuations (0 disables) |
+| `single_quote`     | `bool`              | `false`              | Prefer single quotes instead of double quotes                          |
 | `trim_empty_lines` | `bool`              | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks     |
 | `use_tabs`         | `bool`              | `true`               | Indent with tabs instead of spaces                                     |
 
