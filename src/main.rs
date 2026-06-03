@@ -269,6 +269,8 @@ fn run_format(
 	}
 
 	let outer_start = Instant::now();
+	let mut num_formatted: usize = 0;
+	let mut num_unchanged: usize = 0;
 
 	for_each_file(
 		&files,
@@ -276,6 +278,7 @@ fn run_format(
 		|file, raw_contents, result, duration| {
 			if write {
 				if let Some(formatted) = result {
+					num_formatted += 1;
 					if let Err(e) = fs::write(file, &formatted) {
 						logger_error!("writing {}: {e}", blue(&file.display()));
 						return;
@@ -286,6 +289,7 @@ fn run_format(
 						dim(&format_args!("({}ms)", duration))
 					);
 				} else {
+					num_unchanged += 1;
 					logger_info!(
 						"{} already formatted {}",
 						blue(&file.display()),
@@ -301,7 +305,22 @@ fn run_format(
 
 	if write {
 		let outer_duration = outer_start.elapsed().as_millis();
-		logger_success!("Completed in {}ms.", outer_duration);
+		let total = num_formatted + num_unchanged;
+		let summary = if num_formatted == 0 {
+			format!(
+				"All {} {} already formatted.",
+				total,
+				if total == 1 { "file was" } else { "files" }
+			)
+		} else {
+			format!(
+				"Formatted {} of {} {}.",
+				num_formatted,
+				total,
+				if total == 1 { "file" } else { "files" }
+			)
+		};
+		logger_success!("Completed in {}ms. {}", outer_duration, summary);
 	}
 
 	ExitCode::SUCCESS
@@ -359,14 +378,15 @@ fn run_check(
 	);
 
 	let outer_start = Instant::now();
-	let mut drifted: Vec<PathBuf> = Vec::new();
+	let mut num_issues: usize = 0;
+	let mut num_unchanged: usize = 0;
 
 	for_each_file(
 		&files,
 		&formatter,
 		|file, _raw_contents, result, duration| {
 			if let Some(formatted) = result {
-				drifted.push(file.to_path_buf());
+				num_issues += 1;
 				if write {
 					if let Err(e) = fs::write(file, &formatted) {
 						logger_error!("writing {}: {e}", blue(&file.display()));
@@ -385,6 +405,7 @@ fn run_check(
 					);
 				}
 			} else {
+				num_unchanged += 1;
 				logger_info!(
 					"{} already formatted {}",
 					blue(&file.display()),
@@ -395,9 +416,24 @@ fn run_check(
 	);
 
 	let outer_duration = outer_start.elapsed().as_millis();
-	logger_success!("Completed in {}ms.", outer_duration);
+	let total = num_issues + num_unchanged;
+	let summary = if num_issues == 0 {
+		format!(
+			"All {} {} formatted correctly.",
+			total,
+			if total == 1 { "file" } else { "files" }
+		)
+	} else {
+		format!(
+			"Found formatting issues in {} of {} {}.",
+			num_issues,
+			total,
+			if total == 1 { "file" } else { "files" }
+		)
+	};
+	logger_success!("Completed in {}ms. {}", outer_duration, summary);
 
-	if !drifted.is_empty() {
+	if num_issues > 0 {
 		ExitCode::from(1)
 	} else {
 		ExitCode::SUCCESS
