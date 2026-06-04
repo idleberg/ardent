@@ -124,14 +124,24 @@ fn dent_options_from(args: &FormattingArgs) -> FormatterOptions {
 fn resolve_files(patterns: &[String]) -> Vec<PathBuf> {
 	let mut files = Vec::new();
 	for pattern in patterns {
-		match glob(pattern) {
-			Ok(paths) => {
-				for entry in paths.flatten() {
-					files.push(entry);
+		let path = Path::new(pattern);
+		let effective_patterns = if path.is_dir() {
+			let base = pattern.trim_end_matches('/');
+			vec![format!("{base}/*.nsi"), format!("{base}/*.nsh")]
+		} else {
+			vec![pattern.clone()]
+		};
+
+		for pat in &effective_patterns {
+			match glob(pat) {
+				Ok(paths) => {
+					for entry in paths.flatten() {
+						files.push(entry);
+					}
 				}
-			}
-			Err(e) => {
-				logger_warn!("invalid glob pattern '{}': {}", pattern, e);
+				Err(e) => {
+					logger_warn!("invalid glob pattern '{}': {}", pat, e);
+				}
 			}
 		}
 	}
@@ -458,5 +468,41 @@ fn main() -> ExitCode {
 			Cli::command().print_help().unwrap();
 			ExitCode::from(2)
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use std::fs;
+
+	#[test]
+	fn resolve_files_expands_directory() {
+		let dir = tempfile::tempdir().unwrap();
+		fs::write(dir.path().join("a.nsi"), "").unwrap();
+		fs::write(dir.path().join("b.nsh"), "").unwrap();
+		fs::write(dir.path().join("c.txt"), "").unwrap();
+
+		let patterns = vec![dir.path().to_str().unwrap().to_string()];
+		let files = resolve_files(&patterns);
+
+		assert_eq!(files.len(), 2);
+		assert!(files.iter().any(|f| f.extension().unwrap() == "nsi"));
+		assert!(files.iter().any(|f| f.extension().unwrap() == "nsh"));
+	}
+
+	#[test]
+	fn resolve_files_does_not_recurse_into_subdirectories() {
+		let dir = tempfile::tempdir().unwrap();
+		fs::write(dir.path().join("top.nsi"), "").unwrap();
+		let sub = dir.path().join("sub");
+		fs::create_dir(&sub).unwrap();
+		fs::write(sub.join("nested.nsi"), "").unwrap();
+
+		let patterns = vec![dir.path().to_str().unwrap().to_string()];
+		let files = resolve_files(&patterns);
+
+		assert_eq!(files.len(), 1);
+		assert!(files[0].file_name().unwrap() == "top.nsi");
 	}
 }
