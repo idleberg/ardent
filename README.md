@@ -164,6 +164,7 @@ Summary
 ## Related
 
 - [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
+- [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
 
 ## License
 
