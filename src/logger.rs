@@ -1,4 +1,7 @@
 use std::fmt;
+use std::sync::atomic::AtomicBool;
+
+pub(crate) static SILENT: AtomicBool = AtomicBool::new(false);
 
 fn is_unicode_supported() -> bool {
 	if cfg!(windows) {
@@ -67,11 +70,19 @@ pub fn dim(value: &dyn fmt::Display) -> String {
 }
 
 macro_rules! logger_debug {
-    ($($arg:tt)*) => { $crate::logger::log($crate::logger::Level::Debug, format_args!($($arg)*)) };
+    ($($arg:tt)*) => {
+        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
+            $crate::logger::log($crate::logger::Level::Debug, format_args!($($arg)*))
+        }
+    };
 }
 
 macro_rules! logger_info {
-    ($($arg:tt)*) => { $crate::logger::log($crate::logger::Level::Info, format_args!($($arg)*)) };
+    ($($arg:tt)*) => {
+        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
+            $crate::logger::log($crate::logger::Level::Info, format_args!($($arg)*))
+        }
+    };
 }
 
 macro_rules! logger_warn {
@@ -83,11 +94,19 @@ macro_rules! logger_error {
 }
 
 macro_rules! logger_success {
-    ($($arg:tt)*) => { $crate::logger::log($crate::logger::Level::Success, format_args!($($arg)*)) };
+    ($($arg:tt)*) => {
+        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
+            $crate::logger::log($crate::logger::Level::Success, format_args!($($arg)*))
+        }
+    };
 }
 
 macro_rules! logger_start {
-    ($($arg:tt)*) => { $crate::logger::log($crate::logger::Level::Start, format_args!($($arg)*)) };
+    ($($arg:tt)*) => {
+        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
+            $crate::logger::log($crate::logger::Level::Start, format_args!($($arg)*))
+        }
+    };
 }
 
 pub(crate) use logger_debug;

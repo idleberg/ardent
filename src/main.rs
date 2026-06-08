@@ -48,12 +48,16 @@ enum Commands {
 		#[arg(short, long, help = "Edit files in-place, if check fails")]
 		write: bool,
 
+		#[arg(short = 'S', long, help = "Suppress all output except errors and warnings")]
+		silent: bool,
+
 		#[command(flatten)]
 		formatting: FormattingArgs,
 	},
 }
 
 #[derive(Parser, Debug)]
+#[command(next_help_heading = "Formatting Options")]
 struct FormattingArgs {
 	#[arg(
 		short,
@@ -462,8 +466,14 @@ fn main() -> ExitCode {
 		Some(Commands::Check {
 			files,
 			write,
+			silent,
 			formatting,
-		}) => run_check(&files, write, &formatting, cli.debug),
+		}) => {
+			if silent {
+				logger::SILENT.store(true, std::sync::atomic::Ordering::Relaxed);
+			}
+			run_check(&files, write, &formatting, cli.debug)
+		}
 		None => {
 			Cli::command().print_help().unwrap();
 			ExitCode::from(2)
