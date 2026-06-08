@@ -177,8 +177,12 @@ fn print_label(
 
 fn strip_quote_delimiters(arg: &str) -> Option<(char, &str)> {
 	let delim = arg.as_bytes().first().copied()?;
-	if (delim == b'"' || delim == b'\'' || delim == b'`') && arg.len() >= 2 {
-		let inner = &arg[1..arg.len() - 1];
+	if delim == b'"' || delim == b'\'' || delim == b'`' {
+		let inner = if arg.len() >= 2 {
+			&arg[1..arg.len() - 1]
+		} else {
+			""
+		};
 		Some((delim as char, inner))
 	} else {
 		None
@@ -558,7 +562,7 @@ fn wrap_instruction(
 		None => single_line,
 	};
 
-	if full_line.len() <= options.print_width {
+	if full_line.chars().count() <= options.print_width {
 		return full_line;
 	}
 
@@ -575,7 +579,7 @@ fn wrap_instruction(
 
 	for arg in args {
 		let candidate = format!("{current} {arg}");
-		if candidate.len() + 2 > options.print_width && current.len() > indent.len() {
+		if candidate.chars().count() + 2 > options.print_width && current.chars().count() > indent.chars().count() {
 			result_lines.push(format!("{current} \\"));
 			current = format!("{cont_indent}{arg}");
 		} else {
@@ -1169,6 +1173,15 @@ mod tests {
 		assert_eq!(first, second);
 	}
 
+	#[test]
+	fn wrap_measures_width_in_chars_not_bytes() {
+		// "é" is 2 UTF-8 bytes but 1 char; line is 19 chars / 20 bytes.
+		// At print_width 19 the line fits exactly and must not be wrapped.
+		let input = "DetailPrint \"héllo\"\n";
+		let result = format_with_print_width(input, 19);
+		assert_eq!(result, "DetailPrint \"héllo\"\n");
+	}
+
 	// --- Quote normalization tests ---
 
 	#[test]
@@ -1298,9 +1311,11 @@ mod tests {
 
 	#[test]
 	fn strip_quote_delimiters_single_char() {
-		assert_eq!(strip_quote_delimiters("\""), None);
-		assert_eq!(strip_quote_delimiters("'"), None);
-		assert_eq!(strip_quote_delimiters("`"), None);
+		// A lone quote with no closing delimiter is treated as an empty quoted
+		// string (matching dent's behaviour: "x".slice(1,-1) == "" in JS).
+		assert_eq!(strip_quote_delimiters("\""), Some(('"', "")));
+		assert_eq!(strip_quote_delimiters("'"), Some(('\'', "")));
+		assert_eq!(strip_quote_delimiters("`"), Some(('`', "")));
 	}
 
 	#[test]
