@@ -579,7 +579,9 @@ fn wrap_instruction(
 
 	for arg in args {
 		let candidate = format!("{current} {arg}");
-		if candidate.chars().count() + 2 > options.print_width && current.chars().count() > indent.chars().count() {
+		if candidate.chars().count() + 2 > options.print_width
+			&& current.chars().count() > indent.chars().count()
+		{
 			result_lines.push(format!("{current} \\"));
 			current = format!("{cont_indent}{arg}");
 		} else {
