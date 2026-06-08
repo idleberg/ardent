@@ -48,7 +48,11 @@ enum Commands {
 		#[arg(short, long, help = "Edit files in-place, if check fails")]
 		write: bool,
 
-		#[arg(short = 'S', long, help = "Suppress all output except errors and warnings")]
+		#[arg(
+			short = 'S',
+			long,
+			help = "Suppress all output except errors and warnings"
+		)]
 		silent: bool,
 
 		#[command(flatten)]
