@@ -39,6 +39,13 @@ brew install idleberg/asahi/ardent
 nix profile install github:idleberg/ardent
 ```
 
+### Mise
+
+```shell
+mise plugin install ardent https://github.com/idleberg/mise-ardent
+mise use ardent
+```
+
 ### Source
 
 ```shell
