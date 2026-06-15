@@ -154,6 +154,8 @@ match formatter.check(input).unwrap() {
 
 ## Benchmark
 
+Speed is a neglectible factor for formatting NSIS, which are usually relatively short. However, if this is an important factor for you, take note of these benchmarks run on an Apple M2 Pro with 32GB of RAM.
+
 ```shell
 Benchmark 1: ardent check Examples/bigtest.nsi
   Time (mean ± σ):       1.7 ms ±   0.3 ms    [User: 1.3 ms, System: 0.4 ms]
