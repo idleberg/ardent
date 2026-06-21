@@ -165,10 +165,10 @@ impl Formatter {
 			};
 		}
 
-		if input.contains("\r\n") || cfg!(windows) {
-			"\r\n".to_string()
-		} else {
+		if input.contains('\n') && !input.contains("\r\n") {
 			"\n".to_string()
+		} else {
+			"\r\n".to_string()
 		}
 	}
 }
