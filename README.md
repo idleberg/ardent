@@ -39,6 +39,12 @@ brew install idleberg/asahi/ardent
 nix profile install github:idleberg/ardent
 ```
 
+### Docker
+
+```shell
+docker pull idleberg/ardent
+```
+
 ### Mise
 
 ```shell
