@@ -107,14 +107,14 @@ jobs:
           merge-multiple: true
 
       - name: Generate checksums
-        run: sha256sum ardent-*.zip > ardent-checksums.txt
+        run: sha256sum ardent-*.zip > sha256sum.txt
 
       - name: Create release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           files: |
             ardent-*.zip
-            ardent-checksums.txt
+            sha256sum.txt
 
   publish-to-crates:
     needs: build
