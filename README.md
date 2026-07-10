@@ -14,51 +14,66 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
-### Cargo
+<details>
+	<summary>Cargo</summary>
 
 ```shell
 cargo install ardent
 ```
+</details>
 
-### Winget
+<details>
+	<summary>Winget</summary>
 
-```shell
+```powershell
 winget install idleberg.ardent
 ```
+</details>
 
-### Scoop
+<details>
+	<summary>Scoop</summary>
 
-```shell
+```powershell
 scoop bucket add nsis https://github.com/NSIS-Dev/scoop-nsis
 scoop install nsis/ardent
 ```
+</details>
 
-### Homebrew
+<details>
+	<summary>Homebrew</summary>
 
 ```shell
 brew install idleberg/asahi/ardent
 ```
+</details>
 
-### Nix
+<details>
+	<summary>Nix</summary>
 
 ```shell
 nix profile install github:idleberg/ardent
 ```
+</details>
 
-### Docker
+<details>
+	<summary>Docker</summary>
 
 ```shell
 docker pull idleberg/ardent
 ```
+</details>
 
-### Mise
+<details>
+	<summary>Mise</summary>
 
 ```shell
 mise plugin install ardent https://github.com/idleberg/mise-ardent
 mise use ardent
 ```
+</details>
 
-### Source
+<details>
+	<summary>Build from source</summary>
 
 ```shell
 git clone https://github.com/idleberg/ardent.git
@@ -67,6 +82,7 @@ cargo build --release
 ```
 
 The binary is at `target/release/ardent`.
+</details>
 
 ## CLI Usage
 
