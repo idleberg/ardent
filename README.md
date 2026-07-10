@@ -20,6 +20,12 @@ It aims to be fully compatible while making distribution easier for people outsi
 cargo install ardent
 ```
 
+### Winget
+
+```shell
+winget install idleberg.ardent
+```
+
 ### Scoop
 
 ```shell
