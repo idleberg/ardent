@@ -204,10 +204,11 @@ Summary
    58.70 ± 10.67 times faster than dent check Examples/bigtest.nsi
 ```
 
-## Related
+## Integrations
 
-- [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
+- [zed-nsis-extension](https://github.com/idleberg/zed-nsis-extension) - Zed extension with built-in formatter
 - [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
+- [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
 
 ## License
 
