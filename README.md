@@ -206,7 +206,7 @@ Summary
 
 ## Integrations
 
-- [zed-nsis-extension](https://github.com/idleberg/zed-nsis-extension) - Zed extension with built-in formatter
+- [zed-nsis-extension](https://github.com/idleberg/zed-nsis-extension) - Zed extension for NSIS with built-in formatter
 - [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
 - [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
 
