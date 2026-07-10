@@ -14,6 +14,8 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
+There is a variety of ways to install `ardent`, pick your favourite:
+
 <details>
 	<summary>Cargo</summary>
 
@@ -72,17 +74,21 @@ mise use ardent
 ```
 </details>
 
-<details>
-	<summary>Build from source</summary>
+Alternatively, you can build it from source:
 
 ```shell
+# Clone the repository
 git clone https://github.com/idleberg/ardent.git
 cd ardent
+
+# Setup tooling
+mise install
+
+# Build
 cargo build --release
 ```
 
 The binary is at `target/release/ardent`.
-</details>
 
 ## CLI Usage
 
