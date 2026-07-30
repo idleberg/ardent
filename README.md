@@ -61,7 +61,15 @@ nix profile install github:idleberg/ardent
 	<summary>Docker</summary>
 
 ```shell
-docker pull idleberg/ardent
+docker run idleberg/ardent
+```
+</details>
+
+<details>
+	<summary>Pgkx</summary>
+
+```shell
+pkgx ardent
 ```
 </details>
 
