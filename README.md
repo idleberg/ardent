@@ -66,7 +66,7 @@ docker run idleberg/ardent
 </details>
 
 <details>
-	<summary>Pgkx</summary>
+	<summary>Pkgx</summary>
 
 ```shell
 pkgx ardent
