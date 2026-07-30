@@ -14,7 +14,7 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
-There is a variety of ways to install `ardent`, pick your favourite:
+There is a variety of ways to install (or run) `ardent`, pick your favourite:
 
 <details>
 	<summary>Cargo</summary>
