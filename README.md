@@ -217,6 +217,7 @@ Summary
 - [zed-nsis](https://github.com/idleberg/zed-nsis-extension) - Zed extension for NSIS with built-in formatter
 - [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
 - [ardent-check](https://github.com/marketplace/actions/ardent-check) - GitHub Action to run formatting checks
+- [sublime-lsp-nsis](https://github.com/idleberg/sublime-lsp-nsis) - Sublime Text package for NSIS with built-in formatter
 
 ## License
 
