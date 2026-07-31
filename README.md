@@ -14,7 +14,7 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
-There is a variety of ways to install `ardent`, pick your favourite:
+There is a variety of ways to install (or run) `ardent`, pick your favourite:
 
 <details>
 	<summary>Cargo</summary>
@@ -214,9 +214,11 @@ Summary
 
 ## Integrations
 
-- [zed-nsis-extension](https://github.com/idleberg/zed-nsis-extension) - Zed extension for NSIS with built-in formatter
+- [zed-nsis](https://github.com/idleberg/zed-nsis-extension) - Zed extension for NSIS with built-in formatter
 - [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
-- [setup-ardent](https://github.com/marketplace/actions/setup-ardent) - GitHub Action to install ardent
+- [ardent-check](https://github.com/marketplace/actions/ardent-check) - GitHub Action to run formatting checks
+- [sublime-lsp-nsis](https://github.com/idleberg/sublime-lsp-nsis) - Sublime Text package for NSIS with built-in formatter
+- [nova-nsis](https://github.com/idleberg/sublime-lsp-nsis) - Nova extension for NSIS with built-in formatter
 
 ## License
 
