@@ -137,6 +137,9 @@ ardent check src/**/*.nsi
 
 # Check and auto-fix (still exits 1 if drift was found)
 ardent check --write src/**/*.nsi
+
+# Print a unified diff of what would change
+ardent check --diff src/**/*.nsi
 ```
 
 See `ardent check --help` for available options.
