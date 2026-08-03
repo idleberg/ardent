@@ -29,7 +29,7 @@ mise run build           # cargo build --release
 mise run compare -- <files>  # compare against @nsis/dent output
 ```
 
-Pre-commit hooks are managed by lefthook (auto-formats and lints on commit).
+Pre-commit hooks are managed by hk (auto-formats and lints on commit).
 
 ## NSIS Language Reference
 

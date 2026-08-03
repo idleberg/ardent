@@ -3,6 +3,10 @@ use std::sync::atomic::AtomicBool;
 
 pub(crate) static SILENT: AtomicBool = AtomicBool::new(false);
 
+pub fn is_silent() -> bool {
+	SILENT.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 fn is_unicode_supported() -> bool {
 	if cfg!(windows) {
 		std::env::var("CI").is_ok()

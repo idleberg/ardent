@@ -9,6 +9,9 @@ use glob::glob;
 
 use ardent::{EndOfLine, Formatter, FormatterOptions};
 
+mod diff;
+use diff::print_diff;
+
 mod logger;
 use logger::*;
 
@@ -47,6 +50,13 @@ enum Commands {
 
 		#[arg(short, long, help = "Edit files in-place, if check fails")]
 		write: bool,
+
+		#[arg(
+			short = 'd',
+			long,
+			help = "Print a unified diff for each file with issues"
+		)]
+		diff: bool,
 
 		#[arg(
 			short = 'S',
@@ -347,6 +357,7 @@ fn run_format(
 fn run_check(
 	patterns: &[String],
 	write: bool,
+	diff: bool,
 	formatting: &FormattingArgs,
 	debug: bool,
 ) -> ExitCode {
@@ -361,12 +372,15 @@ fn run_check(
 			logger_warn!("the \"--write\" option is ignored when reading from stdin.");
 		}
 		let start = Instant::now();
-		let (_raw_contents, result) = match format_stdin(&formatter) {
+		let (raw_contents, result) = match format_stdin(&formatter) {
 			Ok(r) => r,
 			Err(code) => return code,
 		};
 		let duration = start.elapsed().as_millis();
-		return if result.is_some() {
+		return if let Some(formatted) = &result {
+			if diff && !is_silent() {
+				print_diff(None, &raw_contents, formatted);
+			}
 			logger_warn!(
 				"Script has issues {}",
 				dim(&format_args!("({}ms)", duration))
@@ -402,9 +416,12 @@ fn run_check(
 	for_each_file(
 		&files,
 		&formatter,
-		|file, _raw_contents, result, duration| {
+		|file, raw_contents, result, duration| {
 			if let Some(formatted) = result {
 				num_issues += 1;
+				if diff && !is_silent() {
+					print_diff(Some(&file.display().to_string()), raw_contents, &formatted);
+				}
 				if write {
 					if let Err(e) = fs::write(file, &formatted) {
 						logger_error!("writing {}: {e}", blue(&file.display()));
@@ -470,13 +487,14 @@ fn main() -> ExitCode {
 		Some(Commands::Check {
 			files,
 			write,
+			diff,
 			silent,
 			formatting,
 		}) => {
 			if silent {
 				logger::SILENT.store(true, std::sync::atomic::Ordering::Relaxed);
 			}
-			run_check(&files, write, &formatting, cli.debug)
+			run_check(&files, write, diff, &formatting, cli.debug)
 		}
 		None => {
 			Cli::command().print_help().unwrap();
