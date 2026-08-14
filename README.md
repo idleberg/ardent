@@ -217,11 +217,12 @@ Summary
 
 ## Integrations
 
-- [zed-nsis](https://github.com/idleberg/zed-nsis-extension) - Zed extension for NSIS with built-in formatter
+The formatter is a part of [nsis-lsp](https://crates.io/crates/nsis-lsp), so editors such as [Zed](https://github.com/idleberg/zed-nsis-extension), [Sublime Text](https://github.com/idleberg/sublime-lsp-nsis) or [Nova](https://github.com/idleberg/sublime-lsp-nsis) already support it.
+
+Other tools that integrate `ardent`:
+
 - [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
 - [ardent-check](https://github.com/marketplace/actions/ardent-check) - GitHub Action to run formatting checks
-- [sublime-lsp-nsis](https://github.com/idleberg/sublime-lsp-nsis) - Sublime Text package for NSIS with built-in formatter
-- [nova-nsis](https://github.com/idleberg/sublime-lsp-nsis) - Nova extension for NSIS with built-in formatter
 
 ## License
 
