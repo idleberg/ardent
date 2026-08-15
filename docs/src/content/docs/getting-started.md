@@ -99,4 +99,4 @@ mise run build
 
 ## CI/CD
 
-To run formatting checks in a GitHub workflow, install the [ardent-check](https://github.com/idleberg/ardent-check) action. For more complex operations, you may use [setup-ardent](https://github.com/idleberg/setup-ardent) instead.
+To run formatting checks in a GitHub workflow, install the [ardent-check](https://github.com/idleberg/ardent-check) action. For more complex operations in your pipeline, you may use [setup-ardent](https://github.com/idleberg/setup-ardent) instead.
