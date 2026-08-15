@@ -1,6 +1,7 @@
 [tools]
 bun = "latest"
 hk = "latest"
+node = "lts"
 pkl = "latest"
 rust = "latest"
 
@@ -9,6 +10,9 @@ HK_MISE = 1
 
 [hooks]
 postinstall = "hk install --mise"
+
+[settings]
+node.corepack = true
 
 [tasks.build]
 description = "Build the Rust formatter"
@@ -37,6 +41,18 @@ run = "cargo test"
 [tasks.compare]
 description = "Compare Node.js and Rust formatter output on provided input files"
 run = "bun tasks/compare.ts"
+
+[tasks."docs:dev"]
+description = "Start the documentation dev server (served under /ardent)"
+run = "pnpm --filter docs dev"
+
+[tasks."docs:build"]
+description = "Build the documentation site"
+run = "pnpm --filter docs build"
+
+[tasks."docs:preview"]
+description = "Preview the built documentation site"
+run = "pnpm --filter docs preview"
 
 [tasks."docker:build"]
 description = "Build the Docker image"

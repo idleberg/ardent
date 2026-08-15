@@ -1,0 +1,7 @@
+packages:
+  - "docs"
+  - "tasks"
+
+allowBuilds:
+  esbuild: true
+  sharp: true
