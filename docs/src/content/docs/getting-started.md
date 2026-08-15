@@ -73,7 +73,7 @@ pkgm install ardent
 
 ### Mise
 
-[Mise-en-place](https://mise.jdx.dev/) is a tool that manages dev tools, env vars, and tasks per project. With `mise-ardent` installed, you can add the formatter to your local project.
+[Mise-en-place](https://mise.jdx.dev/) is a tool that manages dev tools, env vars, and tasks per project. With [mise-ardent](https://github.com/idleberg/mise-ardent) installed, you can add the formatter to your local project.
 
 ```shell
 # One-time operation: install plugin
