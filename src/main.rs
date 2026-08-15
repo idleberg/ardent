@@ -214,20 +214,25 @@ fn init_formatter(
 fn format_stdin(formatter: &Formatter) -> Result<(String, Option<String>), ExitCode> {
 	let raw_contents = read_stdin().map_err(|e| {
 		logger_error!("reading stdin: {e}");
-		ExitCode::from(1)
+		ExitCode::from(2)
 	})?;
 	let result = formatter.check(&raw_contents).map_err(|e| {
 		logger_error!("parsing stdin: {e}");
-		ExitCode::from(1)
+		ExitCode::from(2)
 	})?;
 	Ok((raw_contents, result))
 }
 
+/// Runs `on_result` for every file that could be read and parsed, and returns the number of
+/// files that failed. Failures must surface in the exit code: a file that cannot be parsed
+/// produces no output at all, so silently succeeding would look like an empty format result.
 fn for_each_file(
 	files: &[PathBuf],
 	formatter: &Formatter,
 	mut on_result: impl FnMut(&Path, &str, Option<String>, u128),
-) {
+) -> usize {
+	let mut failures = 0;
+
 	for file in files {
 		if !is_nsis_file(file) {
 			logger_warn!("{} is not an NSIS script, skipping.", blue(&file.display()));
@@ -244,6 +249,7 @@ fn for_each_file(
 			Ok(c) => c,
 			Err(e) => {
 				logger_error!("reading {}: {e}", blue(&file.display()));
+				failures += 1;
 				continue;
 			}
 		};
@@ -252,6 +258,7 @@ fn for_each_file(
 			Ok(r) => r,
 			Err(e) => {
 				logger_error!("parsing {}: {e}", blue(&file.display()));
+				failures += 1;
 				continue;
 			}
 		};
@@ -259,6 +266,8 @@ fn for_each_file(
 		let duration = start.elapsed().as_millis();
 		on_result(file, &raw_contents, result, duration);
 	}
+
+	failures
 }
 
 fn run_format(
@@ -299,8 +308,9 @@ fn run_format(
 	let outer_start = Instant::now();
 	let mut num_formatted: usize = 0;
 	let mut num_unchanged: usize = 0;
+	let mut num_write_errors: usize = 0;
 
-	for_each_file(
+	let num_errors = for_each_file(
 		&files,
 		&formatter,
 		|file, raw_contents, result, duration| {
@@ -309,6 +319,7 @@ fn run_format(
 					num_formatted += 1;
 					if let Err(e) = fs::write(file, &formatted) {
 						logger_error!("writing {}: {e}", blue(&file.display()));
+						num_write_errors += 1;
 						return;
 					}
 					logger_info!(
@@ -351,7 +362,11 @@ fn run_format(
 		logger_success!("Completed in {}ms. {}", outer_duration, summary);
 	}
 
-	ExitCode::SUCCESS
+	if num_errors + num_write_errors > 0 {
+		ExitCode::from(2)
+	} else {
+		ExitCode::SUCCESS
+	}
 }
 
 fn run_check(
@@ -412,8 +427,9 @@ fn run_check(
 	let outer_start = Instant::now();
 	let mut num_issues: usize = 0;
 	let mut num_unchanged: usize = 0;
+	let mut num_write_errors: usize = 0;
 
-	for_each_file(
+	let num_errors = for_each_file(
 		&files,
 		&formatter,
 		|file, raw_contents, result, duration| {
@@ -425,6 +441,7 @@ fn run_check(
 				if write {
 					if let Err(e) = fs::write(file, &formatted) {
 						logger_error!("writing {}: {e}", blue(&file.display()));
+						num_write_errors += 1;
 						return;
 					}
 					logger_info!(
@@ -468,7 +485,11 @@ fn run_check(
 	};
 	logger_success!("Completed in {}ms. {}", outer_duration, summary);
 
-	if num_issues > 0 {
+	// A file that could not be read or parsed was never checked at all, so it outranks
+	// "found formatting issues" — report it as an error instead.
+	if num_errors + num_write_errors > 0 {
+		ExitCode::from(2)
+	} else if num_issues > 0 {
 		ExitCode::from(1)
 	} else {
 		ExitCode::SUCCESS
