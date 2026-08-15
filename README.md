@@ -156,15 +156,6 @@ Summary
    58.70 ± 10.67 times faster than dent check Examples/bigtest.nsi
 ```
 
-## Integrations
-
-The formatter is a part of [nsis-lsp](https://crates.io/crates/nsis-lsp), so editors such as [Zed](https://github.com/idleberg/zed-nsis-extension), [Sublime Text](https://github.com/idleberg/sublime-lsp-nsis) or [Nova](https://github.com/idleberg/sublime-lsp-nsis) already support it.
-
-Other tools that integrate `ardent`:
-
-- [ardent.nvim](https://github.com/idleberg/ardent.nvim) - Neovim formatting plugin
-- [ardent-check](https://github.com/marketplace/actions/ardent-check) - GitHub Action to run formatting checks
-
 ## License
 
 This work is licensed under [The MIT License](LICENSE).
