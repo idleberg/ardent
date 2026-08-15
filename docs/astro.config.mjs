@@ -10,6 +10,9 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Ardent',
+			logo: {
+				src: './public/favicon.svg',
+			},
 			plugins: [starlightThemeExquisitus()],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/idleberg/ardent' }],
 			sidebar: [
