@@ -511,8 +511,19 @@ peg::parser! {
 
 /// Strips a leading BOM and joins backslash-continued lines.
 pub fn preprocess(input: &str) -> String {
+	preprocess_with_map(input).0
+}
+
+/// Like [`preprocess`], but also returns a map from preprocessed byte offsets back to offsets
+/// in the input (after any BOM has been stripped).
+///
+/// Each entry is a `(preprocessed_offset, source_offset)` pair marking the start of a run of
+/// bytes copied verbatim. Joining a continuation drops a newline, so without this map every
+/// position reported after the first `\` continuation is off by one line per continuation.
+fn preprocess_with_map(input: &str) -> (String, Vec<(usize, usize)>) {
 	let without_bom = input.strip_prefix('\u{FEFF}').unwrap_or(input);
 	let mut result = String::with_capacity(without_bom.len());
+	let mut segments = vec![(0usize, 0usize)];
 	let bytes = without_bom.as_bytes();
 	let len = bytes.len();
 	let mut i = 0;
@@ -524,24 +535,25 @@ pub fn preprocess(input: &str) -> String {
 			while j < len && (bytes[j] == b' ' || bytes[j] == b'\t') {
 				j += 1;
 			}
-			if j < len && bytes[j] == b'\n' {
+			let skip_to = if j < len && bytes[j] == b'\n' {
+				Some(j + 1)
+			} else if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
+				Some(j + 2)
+			} else {
+				None
+			};
+			if let Some(skip_to) = skip_to {
 				result.push_str(&without_bom[copy_start..i]);
+				// The injected space stands in for the whole continuation, so anchor it to
+				// the backslash that started it.
+				segments.push((result.len(), i));
 				result.push(' ');
-				i = j + 1;
+				i = skip_to;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
 				}
 				copy_start = i;
-				continue;
-			}
-			if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
-				result.push_str(&without_bom[copy_start..i]);
-				result.push(' ');
-				i = j + 2;
-				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
-					i += 1;
-				}
-				copy_start = i;
+				segments.push((result.len(), copy_start));
 				continue;
 			}
 		}
@@ -549,13 +561,40 @@ pub fn preprocess(input: &str) -> String {
 	}
 
 	result.push_str(&without_bom[copy_start..]);
-	result
+	(result, segments)
+}
+
+/// Translates a preprocessed byte offset back to a `(line, column)` in the original input.
+///
+/// Line and column are 1-indexed and counted the way `peg` counts them: lines by `\n`,
+/// columns in characters.
+fn source_line_col(source: &str, segments: &[(usize, usize)], offset: usize) -> (usize, usize) {
+	let idx = segments
+		.partition_point(|&(preprocessed, _)| preprocessed <= offset)
+		.saturating_sub(1);
+	let (preprocessed_start, source_start) = segments[idx];
+	let mut pos = (source_start + (offset - preprocessed_start)).min(source.len());
+	while pos > 0 && !source.is_char_boundary(pos) {
+		pos -= 1;
+	}
+
+	let before = &source[..pos];
+	let line = before.bytes().filter(|&c| c == b'\n').count() + 1;
+	let column = before.chars().rev().take_while(|&c| c != '\n').count() + 1;
+	(line, column)
 }
 
 /// Parses an NSIS script into a list of CST nodes.
 pub fn parse(input: &str) -> Result<Vec<CSTNode>, String> {
-	let preprocessed = preprocess(input);
-	nsis_parser::script(&preprocessed).map_err(|e| format!("Parse error: {e}"))
+	let (preprocessed, segments) = preprocess_with_map(input);
+	let source = input.strip_prefix('\u{FEFF}').unwrap_or(input);
+	nsis_parser::script(&preprocessed).map_err(|e| {
+		let (line, column) = source_line_col(source, &segments, e.location.offset);
+		format!(
+			"Parse error: error at {line}:{column}: expected {}",
+			e.expected
+		)
+	})
 }
 
 #[cfg(test)]
@@ -1070,6 +1109,38 @@ mod tests {
 	fn preprocess_joins_continuation_trailing_whitespace_crlf() {
 		let result = preprocess("foo \\ \t\r\n  bar");
 		assert_eq!(result, "foo  bar");
+	}
+
+	#[test]
+	fn parse_error_reports_source_line() {
+		let err = parse("Nop\nFooBar\n").unwrap_err();
+		assert!(err.contains("error at 2:"), "{err}");
+	}
+
+	#[test]
+	fn parse_error_line_accounts_for_continuations() {
+		// Each joined continuation removes a newline from the preprocessed text, so a naive
+		// position would drift one line earlier per continuation.
+		let input = "DetailPrint \\\n  \"a\"\nDetailPrint \\\n  \"b\"\nFooBar\n";
+		let err = parse(input).unwrap_err();
+		assert!(err.contains("error at 5:7:"), "{err}");
+	}
+
+	#[test]
+	fn source_line_col_maps_across_a_joined_line() {
+		let source = "Nop\nDetailPrint \\\n  \"a\"\nFooBar\n";
+		let (preprocessed, segments) = preprocess_with_map(source);
+		assert_eq!(preprocessed, "Nop\nDetailPrint  \"a\"\nFooBar\n");
+
+		// The joined text before the continuation still maps 1:1.
+		let detail_print = preprocessed.find("DetailPrint").unwrap();
+		assert_eq!(source_line_col(source, &segments, detail_print), (2, 1));
+		// The argument pulled up from the next source line maps back to that line.
+		let arg = preprocessed.find("\"a\"").unwrap();
+		assert_eq!(source_line_col(source, &segments, arg), (3, 3));
+		// And everything after the join is shifted back by the swallowed newline.
+		let foo_bar = preprocessed.find("FooBar").unwrap();
+		assert_eq!(source_line_col(source, &segments, foo_bar), (4, 1));
 	}
 
 	#[test]
