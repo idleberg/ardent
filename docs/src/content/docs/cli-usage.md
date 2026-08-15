@@ -3,7 +3,7 @@ title: Command-line usage
 description: Learn how to use the Ardent CLI tool.
 ---
 
-The Rust crate for Ardent consists of two parts: the library for use in other Rust projects and the CLI tool. On this page you'öö learn how to use `ardent` on the command-line.
+The Rust crate for Ardent consists of two parts: the library for use in other Rust projects and the CLI tool. On this page you'll learn how to use `ardent` on the command-line.
 
 ## Commands
 
