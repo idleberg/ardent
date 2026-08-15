@@ -17,7 +17,7 @@ It aims to be fully compatible while making distribution easier for people outsi
 > [!TIP]
 > This document is primarily target at developers. If you simply want to *use* Ardent, please refer to the [documentation website](https://idleberg.github.io/ardent/) instead.
 
-For development purposes, use Cargo to install Rust.
+For development purposes, use Cargo for installation.
 
 ```shell
 cargo install ardent
