@@ -3,7 +3,7 @@ title: Playground
 description: Learn about code editors that already integrate Ardent today.
 ---
 
-The Ardent formatter is already a part of the [NSIS language server](https://crates.io/crates/nsis-lsp). As such, it's already integrated in many popular code editors.
+The Ardent formatter is part of the [NSIS language server](https://crates.io/crates/nsis-lsp). As such, it's already integrated in many popular code editors.
 
 ## Code Editors
 
