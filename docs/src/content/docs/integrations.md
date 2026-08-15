@@ -1,5 +1,5 @@
 ---
-title: Playground
+title: Integrations
 description: Learn about code editors that already integrate Ardent today.
 ---
 
