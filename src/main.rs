@@ -19,7 +19,7 @@ use logger::*;
 #[command(
 	name = "ardent",
 	version,
-	about = "Opinionated formatter for NSIS scripts"
+	about = "🍁 Ardent is an opinionated code formatter for NSIS scripts"
 )]
 struct Cli {
 	#[arg(short = 'D', long, help = "Print debug messages")]
@@ -31,7 +31,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-	#[command(about = "Format NSIS scripts")]
+	#[command(about = "Command to format NSIS scripts")]
 	Format {
 		#[arg(help = "Files or glob patterns to format")]
 		files: Vec<String>,
@@ -43,7 +43,7 @@ enum Commands {
 		formatting: FormattingArgs,
 	},
 
-	#[command(about = "Check if NSIS scripts are formatted correctly")]
+	#[command(about = "Command to check if NSIS scripts are formatted correctly")]
 	Check {
 		#[arg(help = "Files or glob patterns to check")]
 		files: Vec<String>,

@@ -1,7 +1,7 @@
 [package]
 name = "ardent"
 version = "0.11.0"
-description = "Opinionated formatter for NSIS scripts"
+description = "An opinionated code formatter for NSIS scripts"
 authors = ["Jan T. Sott"]
 repository = "https://github.com/idleberg/ardent"
 license = "MIT"

@@ -4,7 +4,7 @@
 [![Crates.io Version](https://img.shields.io/crates/v/ardent?style=for-the-badge)](https://crates.io/crates/ardent)
 [![CI](https://img.shields.io/github/actions/workflow/status/idleberg/ardent/ci.yml?style=for-the-badge)](https://github.com/idleberg/ardent/actions)
 
-> An opinionated code formatter for NSIS scripts
+> An opinionated code formatter for NSIS scripts.
 
 ## Description
 
