@@ -6,7 +6,6 @@
 node_modules/
 bun.lock
 package-lock.json
-pnpm-lock.yaml
 
 # AI stuff
 !.claude/settings.json
