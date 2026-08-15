@@ -14,73 +14,14 @@ It aims to be fully compatible while making distribution easier for people outsi
 
 ## Installation
 
-There is a variety of ways to install (or run) `ardent`, pick your favourite:
+> [!TIP]
+> This document is for developers. If you simply want to *use* Ardent, please refer to the [documentation website](https://idleberg.github.io/ardent/).
 
-<details>
-	<summary>Cargo</summary>
+For development purposes, use Cargo to install Rust.
 
 ```shell
 cargo install ardent
 ```
-</details>
-
-<details>
-	<summary>Winget</summary>
-
-```powershell
-winget install idleberg.ardent
-```
-</details>
-
-<details>
-	<summary>Scoop</summary>
-
-```powershell
-scoop bucket add nsis https://github.com/NSIS-Dev/scoop-nsis
-scoop install nsis/ardent
-```
-</details>
-
-<details>
-	<summary>Homebrew</summary>
-
-```shell
-brew install idleberg/asahi/ardent
-```
-</details>
-
-<details>
-	<summary>Nix</summary>
-
-```shell
-nix profile install github:idleberg/ardent
-```
-</details>
-
-<details>
-	<summary>Docker</summary>
-
-```shell
-docker run idleberg/ardent
-```
-</details>
-
-<details>
-	<summary>Pkgx</summary>
-
-```shell
-pkgx ardent
-```
-</details>
-
-<details>
-	<summary>Mise</summary>
-
-```shell
-mise plugin install ardent https://github.com/idleberg/mise-ardent
-mise use ardent
-```
-</details>
 
 Alternatively, you can build it from source:
 
