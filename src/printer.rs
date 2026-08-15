@@ -7,6 +7,7 @@ use crate::canonical_includes::CANONICAL_INCLUDES;
 use crate::canonical_parameters::{
 	GLOBAL_PARAMETER_PREFIXES, GLOBAL_PARAMETERS, INSTRUCTION_PARAMETERS,
 };
+use crate::canonical_variables::{BUILTIN_DEFINES, BUILTIN_LANGSTRINGS, BUILTIN_VARIABLES};
 use crate::parser::{CSTNode, CommentStyle, TrailingComment};
 use crate::rules::{CASE, CLOSE, CLOSE_AFTER, MID, OPEN};
 
@@ -250,16 +251,136 @@ fn normalize_quotes(arg: &str, single_quote: bool) -> String {
 	format!("\"{}\"", escape_for_double(&content))
 }
 
+/// Returns the index just past the delimiter closing a `$`-group starting at `start`, where
+/// `start` points at the `$`. Handles nested groups of the same kind.
+fn find_group_end(bytes: &[u8], start: usize, open: u8, close: u8) -> Option<usize> {
+	let mut depth = 1usize;
+	let mut i = start + 2;
+
+	while i < bytes.len() {
+		if bytes[i] == b'$' && i + 1 < bytes.len() && bytes[i + 1] == open {
+			depth += 1;
+			i += 2;
+			continue;
+		}
+		if bytes[i] == close {
+			depth -= 1;
+			if depth == 0 {
+				return Some(i + 1);
+			}
+		}
+		i += 1;
+	}
+
+	None
+}
+
+/// Rewrites NSIS built-in variables (`$instdir`), defines (`${nsisdir}`) and language strings
+/// (`$(^name)`) to their canonical casing, leaving custom names, environment variables and
+/// escape sequences untouched.
+fn normalize_variables(text: &str) -> String {
+	let bytes = text.as_bytes();
+	let mut result = String::with_capacity(text.len());
+	let mut i = 0;
+
+	while i < bytes.len() {
+		if bytes[i] != b'$' {
+			let start = i;
+			while i < bytes.len() && bytes[i] != b'$' {
+				i += 1;
+			}
+			result.push_str(&text[start..i]);
+			continue;
+		}
+
+		let next = bytes.get(i + 1).copied();
+
+		match next {
+			// Escape sequences: `$$`, `$\n`, `$\r`, `$\t`, `$\"`, `$\'`, `` $\` ``
+			Some(b'$') | Some(b'\\') => {
+				result.push_str(&text[i..i + 2]);
+				i += 2;
+			}
+			Some(b'{') => {
+				let Some(end) = find_group_end(bytes, i, b'{', b'}') else {
+					result.push_str(&text[i..]);
+					break;
+				};
+				let group = &text[i..end];
+				let lower = group.to_lowercase();
+				let canonical = BUILTIN_DEFINES
+					.get(lower.as_str())
+					.or_else(|| CANONICAL_INCLUDES.get(lower.as_str()));
+				result.push_str(canonical.copied().unwrap_or(group));
+				i = end;
+			}
+			Some(b'(') => {
+				let Some(end) = find_group_end(bytes, i, b'(', b')') else {
+					result.push_str(&text[i..]);
+					break;
+				};
+				let inner = &text[i + 2..end - 1];
+				if inner.starts_with('^')
+					&& let Some(&canonical) = BUILTIN_LANGSTRINGS.get(inner.to_lowercase().as_str())
+				{
+					result.push_str("$(");
+					result.push_str(canonical);
+					result.push(')');
+				} else {
+					result.push_str(&text[i..end]);
+				}
+				i = end;
+			}
+			// Environment variables — the names are not ours to normalize
+			Some(b'%') => {
+				let end = match text[i + 2..].find('%') {
+					Some(offset) => i + 2 + offset + 1,
+					None => bytes.len(),
+				};
+				result.push_str(&text[i..end]);
+				i = end;
+			}
+			_ => {
+				let start = i + 1;
+				let mut end = start;
+				while end < bytes.len()
+					&& (bytes[end].is_ascii_alphanumeric() || bytes[end] == b'_')
+				{
+					end += 1;
+				}
+
+				if end == start {
+					result.push('$');
+					i += 1;
+					continue;
+				}
+
+				let name = &text[start..end];
+				match BUILTIN_VARIABLES.get(name.to_lowercase().as_str()) {
+					Some(&canonical) => {
+						result.push('$');
+						result.push_str(canonical);
+					}
+					None => result.push_str(&text[i..end]),
+				}
+				i = end;
+			}
+		}
+	}
+
+	result
+}
+
 fn normalize_arg(
 	arg: &str,
 	instr_params: Option<&HashMap<&str, &str>>,
 	single_quote: bool,
 ) -> String {
 	if arg.starts_with('$') {
-		return arg.to_string();
+		return normalize_variables(arg);
 	}
 	if arg.starts_with('"') || arg.starts_with('\'') || arg.starts_with('`') {
-		return normalize_quotes(arg, single_quote);
+		return normalize_variables(&normalize_quotes(arg, single_quote));
 	}
 
 	let lower = arg.to_lowercase();
@@ -278,11 +399,11 @@ fn normalize_arg(
 	{
 		let prefix_lower = &lower[..=eq_idx];
 		if let Some(&canonical) = GLOBAL_PARAMETER_PREFIXES.get(prefix_lower) {
-			return format!("{}{}", canonical, &arg[eq_idx + 1..]);
+			return format!("{}{}", canonical, normalize_variables(&arg[eq_idx + 1..]));
 		}
 	}
 
-	arg.to_string()
+	normalize_variables(arg)
 }
 
 fn split_pipe_tokens(args: &[String]) -> Vec<String> {
@@ -472,6 +593,7 @@ fn print_instruction(
 	let canonical_kw = CANONICAL_CASING
 		.get(kw_lower.as_str())
 		.or_else(|| CANONICAL_INCLUDES.get(kw_lower.as_str()))
+		.or_else(|| BUILTIN_DEFINES.get(kw_lower.as_str()))
 		.copied()
 		.unwrap_or(keyword);
 	let instr_params = INSTRUCTION_PARAMETERS.get(kw_lower.as_str());
@@ -1329,5 +1451,127 @@ mod tests {
 	fn format_stray_quote_no_panic() {
 		let result = format_with_defaults("Abort $ErrorMessage\"\n");
 		assert!(result.contains("Abort"));
+	}
+
+	// --- normalize_variables ---
+
+	#[test]
+	fn variables_builtin_named() {
+		assert_eq!(normalize_variables("$instdir"), "$INSTDIR");
+		assert_eq!(normalize_variables("$Temp"), "$TEMP");
+		assert_eq!(normalize_variables("$hwndParent"), "$HWNDPARENT");
+		assert_eq!(normalize_variables("$_click"), "$_CLICK");
+	}
+
+	#[test]
+	fn variables_registers() {
+		assert_eq!(normalize_variables("$r0"), "$R0");
+		assert_eq!(normalize_variables("$R9"), "$R9");
+		assert_eq!(normalize_variables("$0"), "$0");
+	}
+
+	#[test]
+	fn variables_custom_unchanged() {
+		assert_eq!(normalize_variables("$myVar"), "$myVar");
+		assert_eq!(normalize_variables("$instdirfoo"), "$instdirfoo");
+	}
+
+	#[test]
+	fn variables_builtin_defines() {
+		assert_eq!(normalize_variables("${nsisdir}"), "${NSISDIR}");
+		assert_eq!(normalize_variables("${__file__}"), "${__FILE__}");
+		assert_eq!(
+			normalize_variables("${nsis_char_size}"),
+			"${NSIS_CHAR_SIZE}"
+		);
+	}
+
+	#[test]
+	fn variables_custom_defines_unchanged() {
+		assert_eq!(normalize_variables("${myDefine}"), "${myDefine}");
+		assert_eq!(normalize_variables("${U+00e9}"), "${U+00e9}");
+	}
+
+	#[test]
+	fn variables_include_macros_in_args() {
+		assert_eq!(normalize_variables("${getsize}"), "${GetSize}");
+	}
+
+	#[test]
+	fn variables_builtin_langstrings() {
+		assert_eq!(normalize_variables("$(^name)"), "$(^Name)");
+		assert_eq!(normalize_variables("$(^NAMEDA)"), "$(^NameDA)");
+		assert_eq!(normalize_variables("$(MyLangString)"), "$(MyLangString)");
+	}
+
+	#[test]
+	fn variables_environment_untouched() {
+		assert_eq!(normalize_variables("$%windir%"), "$%windir%");
+		assert_eq!(normalize_variables("$%Path%\\bin"), "$%Path%\\bin");
+	}
+
+	#[test]
+	fn variables_escapes_preserved() {
+		assert_eq!(normalize_variables("$$instdir"), "$$instdir");
+		assert_eq!(normalize_variables("a$\\nb"), "a$\\nb");
+		assert_eq!(
+			normalize_variables("$\\\"$instdir$\\\""),
+			"$\\\"$INSTDIR$\\\""
+		);
+	}
+
+	#[test]
+	fn variables_concatenated() {
+		assert_eq!(
+			normalize_variables("$instdir$temp${nsisdir}"),
+			"$INSTDIR$TEMP${NSISDIR}"
+		);
+	}
+
+	#[test]
+	fn variables_path_segments() {
+		assert_eq!(
+			normalize_variables("$instdir\\Uninstall.exe"),
+			"$INSTDIR\\Uninstall.exe"
+		);
+	}
+
+	#[test]
+	fn variables_unterminated_groups() {
+		assert_eq!(normalize_variables("${nsisdir"), "${nsisdir");
+		assert_eq!(normalize_variables("$(^name"), "$(^name");
+		assert_eq!(normalize_variables("$"), "$");
+	}
+
+	#[test]
+	fn variables_integration_inside_quotes() {
+		let result = format_with_defaults("File \"$instdir\\foo.exe\"\n");
+		assert_eq!(result, "File \"$INSTDIR\\foo.exe\"\n");
+	}
+
+	#[test]
+	fn variables_integration_bare_arg() {
+		let result = format_with_defaults("setoutpath $instdir\n");
+		assert_eq!(result, "SetOutPath $INSTDIR\n");
+	}
+
+	#[test]
+	fn variables_integration_arithmetic() {
+		let result = format_with_defaults("IntOp $r0 $r0 + 1\n");
+		assert_eq!(result, "IntOp $R0 $R0 + 1\n");
+	}
+
+	#[test]
+	fn variables_integration_keyword_position() {
+		let result = format_with_defaults("!addincludedir \"${nsisdir}\\Include\"\n");
+		assert_eq!(result, "!addincludedir \"${NSISDIR}\\Include\"\n");
+	}
+
+	#[test]
+	fn variables_idempotent() {
+		let input = "StrCpy $r0 \"$instdir$temp${nsisdir}$(^name)\"\n";
+		let first = format_with_defaults(input);
+		let second = format_with_defaults(&first);
+		assert_eq!(first, second);
 	}
 }

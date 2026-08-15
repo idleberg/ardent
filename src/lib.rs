@@ -28,6 +28,8 @@ pub mod canonical_casing;
 pub mod canonical_includes;
 /// Canonical parameter lookup tables for NSIS instructions.
 pub mod canonical_parameters;
+/// Canonical casing lookup tables for NSIS built-in variables, defines and language strings.
+pub mod canonical_variables;
 /// PEG-based parser that produces a concrete syntax tree from NSIS source.
 pub mod parser;
 /// Pretty-printer that renders a CST back to formatted NSIS source.

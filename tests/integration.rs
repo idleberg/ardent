@@ -253,6 +253,37 @@ fn format_unicode_with_bom() {
 }
 
 #[test]
+fn format_fixture_variables() {
+	let input = include_str!("./fixtures/variables.nsi");
+	let f = formatter_lf();
+	let result = f.format(input).unwrap();
+
+	// Built-in variables, defines and language strings are canonicalized
+	assert!(result.contains("\tSetOutPath $INSTDIR"));
+	assert!(result.contains("\tStrCpy $R0 \"$INSTDIR\\bin\""));
+	assert!(result.contains("\tStrCpy $CustomVar \"$INSTDIR$TEMP\""));
+	assert!(result.contains("!addincludedir \"${NSISDIR}\\Include\""));
+	assert!(result.contains("InstallDir \"$PROGRAMFILES\\Ardent\""));
+	assert!(result.contains("\tDetailPrint \"$(^Completed) $(^Name)\""));
+
+	// Custom names, environment variables and escapes are left as typed
+	assert!(result.contains("\tDetailPrint \"${MyOwnDefine}\""));
+	assert!(result.contains("\tDetailPrint \"$myOwnVariable\""));
+	assert!(result.contains("\tDetailPrint \"$(MyOwnLangString)\""));
+	assert!(result.contains("\tDetailPrint \"$%windir%\\system32\""));
+	assert!(result.contains("\tDetailPrint \"$$instdir is escaped\""));
+}
+
+#[test]
+fn idempotent_variables() {
+	let input = include_str!("./fixtures/variables.nsi");
+	let f = formatter_lf();
+	let first = f.format(input).unwrap();
+	let second = f.format(&first).unwrap();
+	assert_eq!(first, second);
+}
+
+#[test]
 fn error_on_zero_indent_size_with_spaces() {
 	let result = Formatter::new(FormatterOptions {
 		use_tabs: false,
