@@ -475,7 +475,7 @@ peg::parser! {
 
 		rule quoted_string() -> String
 			= s:$(
-				"\"" ("\"\"" / "$\\\"" / [^ '"' | '\r' | '\n'])* "\""
+				"\"" ("$\\\"" / [^ '"' | '\r' | '\n'])* "\""
 			  ) { s.to_string() }
 			/ s:$(
 				"'" ("$\\'" / [^ '\'' | '\r' | '\n'])* "'"
@@ -952,6 +952,34 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "DetailPrint".to_string(),
 				args: vec!["`hello world`".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_adjacent_quotes_are_two_arguments() {
+		// `""` is not an escape: makensis closes the string at the second quote and
+		// reads two tokens (`!echo "a""b"` fails with "expects 1 parameters, got 2").
+		let nodes = parse("!echo \"a\"\"b\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "!echo".to_string(),
+				args: vec!["\"a\"".to_string(), "\"b\"".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_double_quotes_inside_single_quoted_arg() {
+		let nodes = parse("nsExec::Exec 'ssm.exe -c \"\"$RootDir\\conf\"\"'\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "nsExec::Exec".to_string(),
+				args: vec!["'ssm.exe -c \"\"$RootDir\\conf\"\"'".to_string()],
 				comment: None,
 			}]
 		);

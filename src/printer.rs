@@ -191,9 +191,10 @@ fn strip_quote_delimiters(arg: &str) -> Option<(char, &str)> {
 }
 
 fn unescape_inner(inner: &str) -> String {
+	// NSIS has no doubled-delimiter escape: makensis reads `"a""b"` as two separate
+	// tokens, so `""` is only ever two literal characters.
 	inner
 		.replace("$\\\"", "\"")
-		.replace("\"\"", "\"")
 		.replace("$\\'", "'")
 		.replace("$\\`", "`")
 }
@@ -1391,11 +1392,25 @@ mod tests {
 	}
 
 	#[test]
-	fn quotes_double_with_double_double_escape_to_single() {
+	fn quotes_double_double_is_not_an_escape() {
+		// makensis reads `"a""b"` as two tokens, so `""` is never an escape for `"`.
+		// Inside a single-quoted string it is simply two literal characters.
 		assert_eq!(
-			normalize_quotes("\"He said \"\"Hi\"\"\"", true),
-			"'He said \"Hi\"'"
+			normalize_quotes("'a \"\"b\"\" c'", false),
+			"'a \"\"b\"\" c'"
 		);
+		assert_eq!(
+			normalize_quotes("`a \"\"b\"\" c`", false),
+			"'a \"\"b\"\" c'"
+		);
+	}
+
+	#[test]
+	fn quotes_double_double_preserved_in_command_line() {
+		// Regression: doubled quotes are meaningful to cmd.exe and must survive verbatim.
+		let input = "nsExec::Exec '$INSTDIR\\ssm.exe -c \"\"$RootDir\\conf\"\" -l quiet'\n";
+		let result = format_with_defaults(input);
+		assert_eq!(result, input);
 	}
 
 	#[test]
