@@ -22,6 +22,7 @@ pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 		"${If}",
 		"${IfNot}",
 		"${MementoSection}",
+		"${MementoSectionEx}",
 		"${MementoUnselectedSection}",
 		"${Select}",
 		"${Switch}",
@@ -45,6 +46,7 @@ pub static CASE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 		"${Case4}",
 		"${Case5}",
 		"${CaseElse}",
+		"${Case_Else}",
 		"${Default}",
 	])
 });

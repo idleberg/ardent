@@ -85,6 +85,47 @@ fn switch_case_idempotent() {
 }
 
 #[test]
+fn switch_case_else_alias() {
+	let f = formatter_lf();
+	let input = "${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Case_Else}\nDetailPrint \"else\"\n${EndSwitch}\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(
+		result,
+		"${Switch} $0\n\t${Case} 1\n\t\tDetailPrint \"one\"\n\n\t${Case_Else}\n\t\tDetailPrint \"else\"\n${EndSwitch}\n"
+	);
+}
+
+#[test]
+fn memento_section_ex_indent() {
+	let f = formatter_lf();
+	let input = "${MementoSectionEx} \"\" \"x\" mid sid\nNop\n${MementoSectionEnd}\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(
+		result,
+		"${MementoSectionEx} \"\" \"x\" mid sid\n\tNop\n${MementoSectionEnd}\n"
+	);
+}
+
+#[test]
+fn canonical_include_logiclib_loops() {
+	let f = formatter_lf();
+	let input = "${while} $0 < 3\n${endwhile}\n${for} $0 1 3\n${next}\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(
+		result,
+		"${While} $0 < 3\n${EndWhile}\n\n${For} $0 1 3\n${Next}\n"
+	);
+}
+
+#[test]
+fn canonical_include_logiclib_unless() {
+	let f = formatter_lf();
+	let input = "${unless} $R0 == \"\"\n${endunless}\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(result, "${Unless} $R0 == \"\"\n${EndUnless}\n");
+}
+
+#[test]
 fn while_end_while_indent() {
 	let f = formatter_lf();
 	let input = "Section \"x\"\n${While} $0 < 3\nNop\n${EndWhile}\nNop\nSectionEnd\n";
