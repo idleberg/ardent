@@ -85,6 +85,28 @@ fn switch_case_idempotent() {
 }
 
 #[test]
+fn while_end_while_indent() {
+	let f = formatter_lf();
+	let input = "Section \"x\"\n${While} $0 < 3\nNop\n${EndWhile}\nNop\nSectionEnd\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(
+		result,
+		"Section \"x\"\n\t${While} $0 < 3\n\t\tNop\n\t${EndWhile}\n\n\tNop\nSectionEnd\n"
+	);
+}
+
+#[test]
+fn unless_end_unless_indent() {
+	let f = formatter_lf();
+	let input = "Section \"x\"\n${Unless} $0 == 1\nNop\n${EndUnless}\nNop\nSectionEnd\n";
+	let result = f.format(input).unwrap();
+	assert_eq!(
+		result,
+		"Section \"x\"\n\t${Unless} $0 == 1\n\t\tNop\n\t${EndUnless}\n\n\tNop\nSectionEnd\n"
+	);
+}
+
+#[test]
 fn canonical_include_logiclib() {
 	let f = formatter_lf();
 	let input = "${if} $R0 == \"\"\n${endif}\n";
