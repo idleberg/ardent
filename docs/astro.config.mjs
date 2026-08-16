@@ -4,10 +4,13 @@ import starlight from '@astrojs/starlight';
 import starlightThemeExquisitus from 'starlight-theme-exquisitus';
 import sitemap from '@astrojs/sitemap'
 
+const site = 'https://idleberg.github.io';
+const base = '/ardent';
+
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://idleberg.github.io',
-	base: '/ardent',
+	site,
+	base,
 	integrations: [
 		sitemap(),
 		starlight({
@@ -15,6 +18,16 @@ export default defineConfig({
 			logo: {
 				src: './public/favicon.svg',
 			},
+			head: [
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image', content: new URL(`${base}/social.jpg`, site).href },
+				},
+				{
+					tag: 'meta',
+					attrs: { name: 'twitter:card', content: 'summary_large_image' },
+				},
+			],
 			plugins: [starlightThemeExquisitus()],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/idleberg/ardent' }],
 			sidebar: [
