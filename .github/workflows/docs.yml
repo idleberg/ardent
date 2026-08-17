@@ -33,6 +33,8 @@ jobs:
 
       - name: Build documentation
         run: mise run docs:build
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
 
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
