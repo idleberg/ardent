@@ -38,7 +38,7 @@ export default defineConfig({
 				{ label: 'Getting started', slug: 'getting-started' },
 				{ label: 'CLI Usage', slug: 'cli-usage' },
 				{ label: 'Integrations', slug: 'integrations' },
-				{ label: 'Formatting', slug: 'formatting' },
+				// { label: 'Formatting', slug: 'formatting' },
 				{ label: 'Playground', slug: 'playground' },
 			],
 		}),
