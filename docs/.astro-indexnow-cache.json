@@ -1,1 +1,11 @@
-{}
+{
+	"version": 1,
+	"entries": {
+		"https://idleberg.github.io/cli-usage": "sha256:0643532eaad1103bf566d3dd19b4154bbaaae1a7a770f2c8a6f2b7d946905303",
+		"https://idleberg.github.io/formatting": "sha256:f054df91bb88ec767c9a4903e29275db2692d018a5f7bb0bc8e6411729627c9a",
+		"https://idleberg.github.io/getting-started": "sha256:fa40914c753be3942f91d11284b4f0c29a12b88a97595a3cab0115d506b31734",
+		"https://idleberg.github.io/": "sha256:629179637bafe45aad6e33591a58af9f3c140714e828c36d2ab74d17dfba661a",
+		"https://idleberg.github.io/integrations": "sha256:2112de5fe53cbd2685337aaea1c931bc5d18be1951c33c75030a2277c8bbfd9b",
+		"https://idleberg.github.io/playground": "sha256:ef91e69b14bd4151fc530967e9ab7b5e441936d373d7a3e45df368cdf97a7027"
+	}
+}
