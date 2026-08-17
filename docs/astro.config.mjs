@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightThemeExquisitus from 'starlight-theme-exquisitus';
 import sitemap from '@astrojs/sitemap'
+import indexnow from "astro-indexnow";
 
 const site = 'https://idleberg.github.io';
 const base = '/ardent';
@@ -12,6 +13,9 @@ export default defineConfig({
 	site,
 	base,
 	integrations: [
+		indexnow({
+      key: process.env.INDEXNOW_KEY,
+    }),
 		sitemap(),
 		starlight({
 			title: 'Ardent',
@@ -34,6 +38,7 @@ export default defineConfig({
 				{ label: 'Getting started', slug: 'getting-started' },
 				{ label: 'CLI Usage', slug: 'cli-usage' },
 				{ label: 'Integrations', slug: 'integrations' },
+				{ label: 'Formatting', slug: 'formatting' },
 				{ label: 'Playground', slug: 'playground' },
 			],
 		}),
