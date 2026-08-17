@@ -13,9 +13,9 @@ NSIS is case-insensitive, so `OutFile`, `outfile` and `OUTFILE` all work. Ardent
 
 ```diff live lang="nsis"
 - outFile "demo.exe"
-- NAME "Screaming Installer"
+- NAME "My Installer"
 + OutFile "demo.exe"
-+ Name "Screaming Installer"
++ Name "My Installer"
 
 Section
 -  detailprint "NSIS is installed at ${nsisdir}"
@@ -29,9 +29,9 @@ Ardent indents the body of every block and removes indentation that doesn't belo
 
 ```diff live lang="nsis"
 OutFile "demo.exe"
--  Name "Indented Installer"
+-  Name "My Installer"
 -   Unicode true
-+Name "Indented Installer"
++Name "My Installer"
 +Unicode true
 
 Section
