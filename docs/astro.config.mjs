@@ -14,7 +14,7 @@ export default defineConfig({
 	base,
 	integrations: [
 		indexnow({
-      key: process.env.INDEXNOW_KEY,
+      key: 'b51721840dd84206b240f86949e12359',
     }),
 		sitemap(),
 		starlight({
