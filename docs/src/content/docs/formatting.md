@@ -49,7 +49,7 @@ SectionEnd
 Ardent separates blocks with a blank line and collapses longer runs of blank lines into one.
 
 ```diff live lang="nsis"
-Outfile "demo.exe"
+OutFile "demo.exe"
 -# one lonely section
 -Section
 -SectionEnd
