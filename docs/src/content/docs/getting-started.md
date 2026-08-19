@@ -12,7 +12,7 @@ Ardent can be installed from several sources. Pick the one you're most familiar 
 Microsoft ships [Winget](https://learn.microsoft.com/windows/package-manager/winget/) with Windows 11, Windows 10 (version 1809 and later), and Windows Server 2025. That makes it the ideal candidate to install Ardent on Windows.
 
 ```powershell
-winget install idleberg.ardent
+winget install --id idleberg.ardent
 ```
 
 ### Scoop
