@@ -347,6 +347,16 @@ fn idempotent_variables() {
 }
 
 #[test]
+fn idempotent_labels() {
+	let input = "Function Foo\nStrCmp $0 \"\" done\n; bail out\ndone:\nDetailPrint \"x\"\nretry:\nGoto done\nFunctionEnd\n";
+	let f = formatter_lf();
+	let first = f.format(input).unwrap();
+	let second = f.format(&first).unwrap();
+	assert_eq!(first, second);
+	assert!(first.contains("\n\n\t; bail out\n\tdone:\n"));
+}
+
+#[test]
 fn error_on_zero_indent_size_with_spaces() {
 	let result = Formatter::new(FormatterOptions {
 		use_tabs: false,

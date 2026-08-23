@@ -731,21 +731,72 @@ fn is_block_close(node: &CSTNode) -> bool {
 	matches!(node, CSTNode::Instruction { keyword, .. } if CLOSE.contains(&keyword.to_lowercase()))
 }
 
+fn is_label(node: &CSTNode) -> bool {
+	matches!(node, CSTNode::Label { .. })
+}
+
+/// Nodes that start a new visual chunk and therefore want a blank line above them.
+/// Unlike block openers, labels get no blank line after them.
+fn needs_blank_before(node: &CSTNode) -> bool {
+	is_block_open(node) || is_label(node)
+}
+
+/// Whether a blank line belongs between `prev` and the chunk-opening `node`.
+fn wants_blank_between(prev: &CSTNode, node: &CSTNode) -> bool {
+	if !needs_blank_before(node) {
+		return false;
+	}
+
+	// A chunk that opens right inside another one, or right below its own
+	// comment, stays attached to it.
+	if is_block_open(prev) || matches!(prev, CSTNode::Comment { .. }) {
+		return false;
+	}
+
+	// Adjacent labels are aliases and stay glued together, like adjacent
+	// block openers.
+	!(is_label(node) && is_label(prev))
+}
+
+/// Whether a comment sitting between `prev` and the chunk-opening `next` starts a
+/// new chunk, and so wants a blank line above itself.
+fn comment_opens_chunk(prev: &CSTNode, next: &CSTNode) -> bool {
+	if !needs_blank_before(next) {
+		return false;
+	}
+
+	// A comment inside a run of label aliases documents the run; it does not
+	// break it apart.
+	!(is_label(prev) && is_label(next))
+}
+
+/// Applies the structural blank-line rules: a blank above every chunk opener
+/// (block openers and labels), a blank below every block closer, and no blank
+/// inside a run of label aliases.
+///
+/// These rules are not governed by `trim_empty_lines`, which only controls the
+/// generic pass in [`trim_and_collapse_blanks`]. Structural blanks are inserted
+/// and the alias-run blank is removed even under `--no-trim`.
 fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 	let mut result: Vec<CSTNode> = Vec::new();
 	let mut prev_non_blank: Option<&CSTNode> = None;
 
 	for (i, node) in nodes.iter().enumerate() {
+		// Consecutive labels are aliases for one jump target, so nothing may
+		// separate them — not even a blank line the author wrote.
+		if is_label(node) && prev_non_blank.is_some_and(is_label) {
+			while matches!(result.last(), Some(CSTNode::Blank)) {
+				result.pop();
+			}
+		}
+
 		let last_is_blank = result.last().is_some_and(|n| matches!(n, CSTNode::Blank));
 
 		if let Some(prev) = prev_non_blank
 			&& !last_is_blank
 			&& !matches!(node, CSTNode::Blank)
 		{
-			if is_block_open(node)
-				&& !is_block_open(prev)
-				&& !matches!(prev, CSTNode::Comment { .. })
-			{
+			if wants_blank_between(prev, node) {
 				result.push(CSTNode::Blank);
 			} else if matches!(node, CSTNode::Comment { .. })
 				&& !is_block_open(prev)
@@ -757,7 +808,7 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 				{
 					j += 1;
 				}
-				if j < nodes.len() && is_block_open(&nodes[j]) {
+				if j < nodes.len() && comment_opens_chunk(prev, &nodes[j]) {
 					result.push(CSTNode::Blank);
 				}
 			} else if is_block_close(prev) && !is_block_close(node) && !is_block_open(node) {
@@ -901,6 +952,96 @@ mod tests {
 	fn format_label_with_comment() {
 		let result = format_with_defaults("myLabel: ; note\n");
 		assert_eq!(result, "myLabel: ; note\n");
+	}
+
+	#[test]
+	fn format_label_gets_blank_line_before() {
+		let result = format_with_defaults("DetailPrint \"x\"\ndone:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\ndone:\n");
+	}
+
+	#[test]
+	fn format_label_keeps_existing_blank_line() {
+		let result = format_with_defaults("DetailPrint \"x\"\n\ndone:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\ndone:\n");
+	}
+
+	#[test]
+	fn format_label_after_block_opener_gets_no_blank_line() {
+		let result = format_with_defaults("Function Foo\ndone:\nFunctionEnd\n");
+		assert_eq!(result, "Function Foo\n\tdone:\nFunctionEnd\n");
+	}
+
+	#[test]
+	fn format_label_with_leading_comment_gets_blank_above_comment() {
+		let result = format_with_defaults("DetailPrint \"x\"\n; note\ndone:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\n; note\ndone:\n");
+	}
+
+	#[test]
+	fn format_label_with_detached_comment_keeps_comment_position() {
+		let result = format_with_defaults("DetailPrint \"x\"\n; note\n\ndone:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\n; note\n\ndone:\n");
+	}
+
+	#[test]
+	fn format_adjacent_labels_get_no_blank_line() {
+		let result = format_with_defaults("DetailPrint \"x\"\nretry:\nagain:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\nretry:\nagain:\n");
+	}
+
+	#[test]
+	fn format_adjacent_labels_drop_existing_blank_line() {
+		let result = format_with_defaults("DetailPrint \"x\"\nretry:\n\nagain:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\nretry:\nagain:\n");
+	}
+
+	#[test]
+	fn format_label_run_collapses_to_one_group() {
+		let result =
+			format_with_defaults("DetailPrint \"x\"\n\nfirst:\n\nsecond:\n\nthird:\nNop\n");
+		assert_eq!(
+			result,
+			"DetailPrint \"x\"\n\nfirst:\nsecond:\nthird:\nNop\n"
+		);
+	}
+
+	/// A comment between two labels documents the alias run rather than breaking
+	/// it apart, so no blank line is inserted above it.
+	#[test]
+	fn format_comment_between_labels_keeps_the_alias_run() {
+		let result = format_with_defaults("DetailPrint \"x\"\nretry:\n; note\nagain:\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\nretry:\n; note\nagain:\n");
+	}
+
+	#[test]
+	fn format_comment_between_label_and_section_still_opens_a_chunk() {
+		let result = format_with_defaults("done:\n; note\nSection \"x\"\nNop\nSectionEnd\n");
+		assert_eq!(
+			result,
+			"done:\n\n; note\nSection \"x\"\n\tNop\nSectionEnd\n"
+		);
+	}
+
+	#[test]
+	fn format_label_gets_no_blank_line_after() {
+		let result = format_with_defaults("DetailPrint \"x\"\ndone:\nDetailPrint \"y\"\n");
+		assert_eq!(result, "DetailPrint \"x\"\n\ndone:\nDetailPrint \"y\"\n");
+	}
+
+	#[test]
+	fn format_leading_label_gets_no_blank_line() {
+		let result = format_with_defaults("done:\nDetailPrint \"x\"\n");
+		assert_eq!(result, "done:\nDetailPrint \"x\"\n");
+	}
+
+	#[test]
+	fn format_label_blank_lines_are_idempotent() {
+		let first = format_with_defaults(
+			"Function Foo\nStrCmp $0 \"\" done\nDetailPrint \"x\"\n; note\ndone:\nFunctionEnd\n",
+		);
+		let second = format_with_defaults(&first);
+		assert_eq!(first, second);
 	}
 
 	#[test]
