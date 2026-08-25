@@ -57,3 +57,7 @@ run = "pnpm --filter docs preview"
 [tasks."docker:build"]
 description = "Build the Docker image"
 run = "docker build -t ardent ."
+
+[tasks.ardent]
+description = "Run the application"
+run = "cargo run --release --bin ardent --"
