@@ -43,6 +43,17 @@ use printer::print;
 const DEFAULT_INDENT_SIZE: usize = 2;
 const DEFAULT_PRINT_WIDTH: usize = 120;
 
+/// Preferred marker for single-line comments.
+///
+/// Block comments (`/* ... */`) are never rewritten.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommentStyle {
+	/// Rewrite `; comment` as `# comment`.
+	Hash,
+	/// Rewrite `# comment` as `; comment`.
+	Semi,
+}
+
 /// Line ending style for formatted output.
 #[derive(Debug, Clone)]
 pub enum EndOfLine {
@@ -83,6 +94,9 @@ pub struct FormatterOptions {
 	pub print_width: usize,
 	/// Whether to prefer single quotes (`true`) or double quotes (`false`).
 	pub single_quote: bool,
+	/// Preferred marker for single-line comments. When `None`, each comment keeps its own
+	/// marker. Block comments are unaffected either way.
+	pub comment_style: Option<CommentStyle>,
 }
 
 impl Default for FormatterOptions {
@@ -94,6 +108,7 @@ impl Default for FormatterOptions {
 			use_tabs: true,
 			print_width: DEFAULT_PRINT_WIDTH,
 			single_quote: false,
+			comment_style: None,
 		}
 	}
 }

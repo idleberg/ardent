@@ -3,7 +3,7 @@ title: Formatting
 description: The formatting rules Ardent always applies to your NSIS scripts.
 ---
 
-The [command-line usage](../cli-usage/) page covers what you can configure: quotes, indentation and print width. This page covers the rest — the *opinionated* part, the rules Ardent always applies.
+The [command-line usage](../cli-usage/) page covers what you can configure: quotes, indentation, comment style and print width. This page covers the rest — the *opinionated* part, the rules Ardent always applies.
 
 ## Rules
 

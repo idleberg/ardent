@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
+use crate::CommentStyle as PreferredCommentStyle;
 use crate::FormatterOptions;
 use crate::canonical_casing::CANONICAL_CASING;
 use crate::canonical_includes::CANONICAL_INCLUDES;
@@ -153,12 +154,25 @@ fn print_comment(
 			.collect::<Vec<_>>()
 			.join(eol)
 	} else {
-		let marker = if *style == CommentStyle::Hash {
-			'#'
-		} else {
-			';'
-		};
+		let marker = comment_marker(style, options);
 		format!("{prefix}{marker} {value}")
+	}
+}
+
+/// Picks the marker for a single-line comment, honouring the `comment_style` option and
+/// falling back to whichever marker the comment was written with. Block comments never
+/// reach this function.
+fn comment_marker(style: &CommentStyle, options: &FormatterOptions) -> char {
+	match options.comment_style {
+		Some(PreferredCommentStyle::Hash) => '#',
+		Some(PreferredCommentStyle::Semi) => ';',
+		None => {
+			if *style == CommentStyle::Hash {
+				'#'
+			} else {
+				';'
+			}
+		}
 	}
 }
 
@@ -171,7 +185,7 @@ fn print_label(
 	let mut line = format!("{}{}:", indent_str(level, options), name);
 	if let Some(c) = comment {
 		line.push(' ');
-		line.push_str(&print_trailing_comment(c));
+		line.push_str(&print_trailing_comment(c, options));
 	}
 	line
 }
@@ -620,7 +634,7 @@ fn print_instruction(
 	let indent = indent_str(level, options);
 
 	if options.print_width > 0 && !normalized.is_empty() {
-		let trailing = comment.map(print_trailing_comment);
+		let trailing = comment.map(|c| print_trailing_comment(c, options));
 		return wrap_instruction(
 			canonical_kw,
 			&normalized,
@@ -642,18 +656,14 @@ fn print_instruction(
 
 	if let Some(c) = comment {
 		line.push(' ');
-		line.push_str(&print_trailing_comment(c));
+		line.push_str(&print_trailing_comment(c, options));
 	}
 
 	line
 }
 
-fn print_trailing_comment(comment: &TrailingComment) -> String {
-	let marker = if comment.style == CommentStyle::Hash {
-		'#'
-	} else {
-		';'
-	};
+fn print_trailing_comment(comment: &TrailingComment, options: &FormatterOptions) -> String {
+	let marker = comment_marker(&comment.style, options);
 	format!("{marker} {}", comment.value)
 }
 

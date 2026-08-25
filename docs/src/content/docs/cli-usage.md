@@ -61,6 +61,10 @@ Ardent encourages the use of tabs. While there are often pseudo-religious reason
 
 Prefer single quotes instead of double quotes.
 
+### `--comment-style`
+
+Specify whether you want to unify comment markers to `#`or `;`. Block comments are never touched. Accepts `hash` or `semi`.
+
 ### `--no-trim`
 
 Ardent will collapse multiple empty lines. Using this flag will prevent this.
