@@ -12,6 +12,7 @@ homepage = "https://idleberg.github.io/ardent"
 keywords = ["nsis", "formatter", "linter"]
 categories = ["command-line-utilities", "development-tools"]
 include = ["src", "README.md"]
+exclude = ["docs"]
 
 [lib]
 name = "ardent"
