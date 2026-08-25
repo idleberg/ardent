@@ -63,19 +63,7 @@ Prefer single quotes instead of double quotes.
 
 ### `--comment-style`
 
-Ardent has no opinion about comment markers, but you might have. Pass this flag to unify them across a script. Block comments are never touched.
-
-Formatting with `--comment-style=semi`:
-
-```diff lang="nsis"
--# a standalone comment
-+; a standalone comment
-
-Section
--  DetailPrint "hello" # a trailing comment
-+  DetailPrint "hello" ; a trailing comment
-SectionEnd
-```
+Specify whether you want to unify comment markers to `#`or `;`. Block comments are never touched. Accepts `hash` or `semi`.
 
 ### `--no-trim`
 
