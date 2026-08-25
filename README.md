@@ -144,16 +144,16 @@ Speed is a neglectible factor for formatting NSIS files, which are usually relat
 
 ```shell
 Benchmark 1: ardent check Examples/bigtest.nsi
-  Time (mean ± σ):       1.7 ms ±   0.3 ms    [User: 1.3 ms, System: 0.4 ms]
-  Range (min … max):     1.3 ms …   4.8 ms    415 runs
+  Time (mean ± σ):       3.0 ms ±   1.4 ms    [User: 1.5 ms, System: 0.8 ms]
+  Range (min … max):     2.2 ms …  22.3 ms    402 runs
 
 Benchmark 2: dent check Examples/bigtest.nsi
-  Time (mean ± σ):     101.9 ms ±   4.6 ms    [User: 95.5 ms, System: 11.4 ms]
-  Range (min … max):    97.9 ms … 124.4 ms    29 runs
+  Time (mean ± σ):      80.3 ms ±   6.4 ms    [User: 71.9 ms, System: 12.9 ms]
+  Range (min … max):    76.3 ms … 116.3 ms    36 runs
 
 Summary
   ardent check Examples/bigtest.nsi ran
-   58.70 ± 10.67 times faster than dent check Examples/bigtest.nsi
+   26.65 ± 12.73 times faster than dent check Examples/bigtest.nsi
 ```
 
 ## License
