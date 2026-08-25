@@ -128,3 +128,14 @@ jobs:
         run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish-to-winget:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish to winget-pkgs
+        uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: idleberg.ardent
+          installers-regex: '-windows-(x64|arm64)\.zip$'
+          token: ${{ secrets.WINGET_TOKEN }}
