@@ -61,6 +61,22 @@ Ardent encourages the use of tabs. While there are often pseudo-religious reason
 
 Prefer single quotes instead of double quotes.
 
+### `--comment-style`
+
+Ardent has no opinion about comment markers, but you might have. Pass this flag to unify them across a script. Block comments are never touched.
+
+Formatting with `--comment-style=semi`:
+
+```diff lang="nsis"
+-# a standalone comment
++; a standalone comment
+
+Section
+-  DetailPrint "hello" # a trailing comment
++  DetailPrint "hello" ; a trailing comment
+SectionEnd
+```
+
 ### `--no-trim`
 
 Ardent will collapse multiple empty lines. Using this flag will prevent this.

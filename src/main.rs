@@ -7,7 +7,7 @@ use std::time::Instant;
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use glob::glob;
 
-use ardent::{EndOfLine, Formatter, FormatterOptions};
+use ardent::{CommentStyle, EndOfLine, Formatter, FormatterOptions};
 
 mod diff;
 use diff::print_diff;
@@ -99,6 +99,14 @@ struct FormattingArgs {
 	)]
 	single_quote: bool,
 
+	#[arg(
+		short = 'c',
+		long,
+		value_enum,
+		help = "Unify the marker used for single-line comments (block comments are unaffected)"
+	)]
+	comment_style: Option<CommentStyleArg>,
+
 	#[arg(short = 'T', long = "no-trim", help = "Do not trim empty lines")]
 	no_trim: bool,
 
@@ -115,6 +123,12 @@ struct FormattingArgs {
 enum EolArg {
 	Crlf,
 	Lf,
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+enum CommentStyleArg {
+	Hash,
+	Semi,
 }
 
 fn default_eol() -> EndOfLine {
@@ -136,6 +150,10 @@ fn dent_options_from(args: &FormattingArgs) -> FormatterOptions {
 		use_tabs: !args.use_spaces,
 		print_width: args.print_width,
 		single_quote: args.single_quote,
+		comment_style: args.comment_style.as_ref().map(|c| match c {
+			CommentStyleArg::Hash => CommentStyle::Hash,
+			CommentStyleArg::Semi => CommentStyle::Semi,
+		}),
 	}
 }
 

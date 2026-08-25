@@ -1,4 +1,4 @@
-use ardent::{EndOfLine, Formatter, FormatterOptions};
+use ardent::{CommentStyle, EndOfLine, Formatter, FormatterOptions};
 
 fn formatter_lf() -> Formatter {
 	Formatter::new(FormatterOptions {
@@ -364,4 +364,84 @@ fn error_on_zero_indent_size_with_spaces() {
 		..Default::default()
 	});
 	assert!(result.is_err());
+}
+
+fn formatter_with_comment_style(style: Option<CommentStyle>) -> Formatter {
+	Formatter::new(FormatterOptions {
+		end_of_line: Some(EndOfLine::Lf),
+		comment_style: style,
+		..Default::default()
+	})
+	.unwrap()
+}
+
+const MIXED_COMMENTS: &str = "# hash standalone\n; semi standalone\nSection\nDetailPrint \"a\" # hash trailing\nDetailPrint \"b\" ; semi trailing\ndone: ; semi label\nSectionEnd\n";
+
+#[test]
+fn comment_style_preserved_by_default() {
+	let f = formatter_with_comment_style(None);
+	let result = f.format(MIXED_COMMENTS).unwrap();
+	assert!(result.contains("# hash standalone"));
+	assert!(result.contains("; semi standalone"));
+	assert!(result.contains("\"a\" # hash trailing"));
+	assert!(result.contains("\"b\" ; semi trailing"));
+	assert!(result.contains("done: ; semi label"));
+}
+
+#[test]
+fn comment_style_semi_rewrites_hash_comments() {
+	let f = formatter_with_comment_style(Some(CommentStyle::Semi));
+	let result = f.format(MIXED_COMMENTS).unwrap();
+	assert!(!result.contains('#'));
+	assert!(result.contains("; hash standalone"));
+	assert!(result.contains("; semi standalone"));
+	assert!(result.contains("\"a\" ; hash trailing"));
+	assert!(result.contains("\"b\" ; semi trailing"));
+	assert!(result.contains("done: ; semi label"));
+}
+
+#[test]
+fn comment_style_hash_rewrites_semi_comments() {
+	let f = formatter_with_comment_style(Some(CommentStyle::Hash));
+	let result = f.format(MIXED_COMMENTS).unwrap();
+	assert!(!result.contains(';'));
+	assert!(result.contains("# hash standalone"));
+	assert!(result.contains("# semi standalone"));
+	assert!(result.contains("\"a\" # hash trailing"));
+	assert!(result.contains("\"b\" # semi trailing"));
+	assert!(result.contains("done: # semi label"));
+}
+
+#[test]
+fn comment_style_leaves_block_comments_alone() {
+	let input = "/*\n * # not a line comment\n * ; neither is this\n */\nName \"Test\"\n";
+	let hash = formatter_with_comment_style(Some(CommentStyle::Hash))
+		.format(input)
+		.unwrap();
+	let semi = formatter_with_comment_style(Some(CommentStyle::Semi))
+		.format(input)
+		.unwrap();
+	let preserved = formatter_with_comment_style(None).format(input).unwrap();
+	assert_eq!(hash, preserved);
+	assert_eq!(semi, preserved);
+	assert!(preserved.contains("# not a line comment"));
+	assert!(preserved.contains("; neither is this"));
+}
+
+#[test]
+fn comment_style_does_not_touch_markers_inside_strings() {
+	let input = "DetailPrint \"a # b ; c\" # trailing\n";
+	let f = formatter_with_comment_style(Some(CommentStyle::Semi));
+	let result = f.format(input).unwrap();
+	assert_eq!(result, "DetailPrint \"a # b ; c\" ; trailing\n");
+}
+
+#[test]
+fn idempotent_comment_style() {
+	for style in [Some(CommentStyle::Hash), Some(CommentStyle::Semi)] {
+		let f = formatter_with_comment_style(style);
+		let first = f.format(MIXED_COMMENTS).unwrap();
+		let second = f.format(&first).unwrap();
+		assert_eq!(first, second);
+	}
 }
