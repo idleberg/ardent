@@ -126,14 +126,15 @@ match formatter.check(input).unwrap() {
 
 ### Options
 
-| Field              | Type                | Default              | Description                                                            |
-| ------------------ | ------------------- | -------------------- | ---------------------------------------------------------------------- |
-| `end_of_line`      | `Option<EndOfLine>` | `None` (auto-detect) | Force CRLF or LF line endings                                          |
-| `indent_size`      | `usize`             | `2`                  | Spaces per indent level (ignored when using tabs)                      |
-| `print_width`      | `usize`             | `120`                | Maximum line width before wrapping with `\` continuations (0 disables) |
-| `single_quote`     | `bool`              | `false`              | Prefer single quotes instead of double quotes                          |
-| `trim_empty_lines` | `bool`              | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks     |
-| `use_tabs`         | `bool`              | `true`               | Indent with tabs instead of spaces                                     |
+| Field              | Type                   | Default              | Description                                                            |
+| ------------------ | ---------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `end_of_line`      | `Option<EndOfLine>`    | `None` (auto-detect) | Force CRLF or LF line endings                                          |
+| `indent_size`      | `usize`                | `2`                  | Spaces per indent level (ignored when using tabs)                      |
+| `print_width`      | `usize`                | `120`                | Maximum line width before wrapping with `\` continuations (0 disables) |
+| `single_quote`     | `bool`                 | `false`              | Prefer single quotes instead of double quotes                          |
+| `trim_empty_lines` | `bool`                 | `true`               | Collapse consecutive blank lines and strip leading/trailing blanks     |
+| `use_tabs`         | `bool`                 | `true`               | Indent with tabs instead of spaces                                     |
+| `comment-style`.   | `Option<CommentStyle>` | `None`               | Unify the marker used for single-line comments                         |
 
 > [!TIP]
 > While many follow their personal preferences in the tabs vs spaces discussion, accessibility is probably the strongest argument to prefer tabs. See [this discussion](https://github.com/prettier/prettier/issues/7475#issuecomment-668544890) for more context.
