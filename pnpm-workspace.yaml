@@ -1,6 +1,6 @@
 packages:
-  - "docs"
   - "tasks"
+  - "web"
 
 allowBuilds:
   esbuild: true

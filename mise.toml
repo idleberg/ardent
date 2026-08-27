@@ -44,15 +44,15 @@ run = "bun tasks/compare.ts"
 
 [tasks."docs:dev"]
 description = "Start the documentation dev server (served under /ardent)"
-run = "pnpm --filter docs dev"
+run = "pnpm --filter web dev"
 
 [tasks."docs:build"]
 description = "Build the documentation site"
-run = "pnpm --filter docs build"
+run = "pnpm --filter web build"
 
 [tasks."docs:preview"]
 description = "Preview the built documentation site"
-run = "pnpm --filter docs preview"
+run = "pnpm --filter web preview"
 
 [tasks."docker:build"]
 description = "Build the Docker image"
