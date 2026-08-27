@@ -9,7 +9,7 @@ rust = "latest"
 HK_MISE = 1
 
 [hooks]
-postinstall = "hk install --mise"
+postinstall = "hk install --mise && pnpm install"
 
 [settings]
 node.corepack = true
