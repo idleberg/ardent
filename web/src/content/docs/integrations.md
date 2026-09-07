@@ -29,7 +29,7 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 ### Helix
 
-[Helix](https://helix-editor.com/) is a modal editor with multiple cursors, tree-sitter integration, language server support and more. The [pull request](https://github.com/helix-editor/helix/pull/15845) for NSIS support is still open.
+[Helix](https://helix-editor.com/) is a modal editor with multiple cursors, tree-sitter integration, language server support and more. The [pull request](https://github.com/helix-editor/helix/pull/15845) for NSIS support is still open (please upvote!)
 
 :::caution
 Editors such as [Pulsar](https://packages.pulsar-edit.dev/packages/language-nsis) (formerly [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/)) are currently using a JavaScript implementation of Ardent. Hence they are not yet listed below.
