@@ -9,7 +9,7 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 ### VS Code
 
-[VS Code](https://www.sublimetext.com/) Visual Studio Code is a free, open source AI code editor. It integrates Ardent via the [vscode-nsis](https://marketplace.visualstudio.com/items?itemName=idleberg.nsis)
+[VS Code](https://www.sublimetext.com/) Visual Studio Code is a free, open source AI code editor. It integrates Ardent via the [vscode-nsis](https://marketplace.visualstudio.com/items?itemName=idleberg.nsis) extension. Users of VS Codium, Cursor, Antigravity ort Windsurf install it from [Open VSX](https://open-vsx.org/extension/idleberg/nsis) instead.
 
 ### Sublime Text
 
