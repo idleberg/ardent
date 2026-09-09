@@ -75,6 +75,16 @@ jobs:
         if: ${{ !matrix.use-cross && !matrix.use-cargo-xwin }}
         run: cargo build --release --target ${{ matrix.target }}
 
+      - name: Verify no dynamic CRT dependency
+        if: contains(matrix.target, 'windows')
+        shell: bash
+        run: |
+          EXE="./target/${{ matrix.target }}/release/ardent.exe"
+          if grep -qa 'VCRUNTIME140\|api-ms-win-crt-' "$EXE"; then
+            echo "::error::$EXE imports the dynamic CRT; it will fail with 0xC0000135 on a clean Windows install. Check .cargo/config.toml crt-static."
+            exit 1
+          fi
+
       - name: Get version
         id: version
         shell: bash
