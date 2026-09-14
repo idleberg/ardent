@@ -11,6 +11,14 @@ permissions:
 
 jobs:
   build:
+    # Overrides the workflow-level `contents: write`, which this job does not need —
+    # `create-release` does the uploading. The other two are for build provenance:
+    # `id-token` fetches the OIDC token Sigstore signs with, `attestations` writes the
+    # resulting bundle to the repository's attestation store.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     strategy:
       matrix:
         include:
@@ -100,6 +108,14 @@ jobs:
           fi
           7z a "ardent-${{ steps.version.outputs.VERSION }}-${{ matrix.artifact-name }}.zip" \
             "./target/${{ matrix.target }}/release/${BIN}" LICENSE
+
+      # Attested here rather than in `create-release` so the provenance names the job that
+      # actually compiled the binary, not the one that collected it. Digests survive the
+      # artifact round-trip, so the released zip verifies against this attestation.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ardent-*.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
