@@ -1,412 +1,665 @@
+//! Canonical casing lookup tables for NSIS instruction parameters.
+//!
+//! Generated from the Dent Style Specification 0.0.0 by `mise run spec:codegen`.
+//! Do not edit — change the spec instead.
+
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
 /// Maps lowercased global parameters (e.g. `/silent`) to their canonical casing.
 pub static GLOBAL_PARAMETERS: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
 	HashMap::from([
-		("/silent", "/SILENT"),
-		("/filesonly", "/FILESONLY"),
-		("/rebootok", "/REBOOTOK"),
-		("/short", "/SHORT"),
-		("/sd", "/SD"),
-		("/branding", "/BRANDING"),
-		("/final", "/FINAL"),
-		("/solid", "/SOLID"),
-		("/global", "/GLOBAL"),
+		("/a", "/a"),
 		("/bom", "/BOM"),
-		("/italic", "/ITALIC"),
-		("/underline", "/UNDERLINE"),
-		("/strike", "/STRIKE"),
+		("/branding", "/BRANDING"),
+		("/componentsonlyoncustom", "/COMPONENTSONLYONCUSTOM"),
+		("/date", "/date"),
+		("/e", "/e"),
 		("/enablecancel", "/ENABLECANCEL"),
-		("/overwrite", "/OVERWRITE"),
-		("/replace", "/REPLACE"),
-		("/noerrors", "/NOERRORS"),
-		("/regedit5", "/REGEDIT5"),
 		("/exeresource", "/EXERESOURCE"),
-		("/stringid", "/STRINGID"),
+		("/file", "/file"),
+		("/fileexists", "/FILEEXISTS"),
+		("/filesonly", "/FILESONLY"),
+		("/final", "/FINAL"),
+		("/global", "/GLOBAL"),
+		("/ifempty", "/ifempty"),
+		("/ifndef", "/ifndef"),
+		("/ifnosubkeys", "/ifnosubkeys"),
+		("/ifnovalues", "/ifnovalues"),
+		("/ignorecase", "/ignorecase"),
+		("/intfmt", "/intfmt"),
+		("/italic", "/ITALIC"),
+		("/math", "/math"),
+		("/nocustom", "/NOCUSTOM"),
+		("/noerrors", "/NOERRORS"),
+		("/nonfatal", "/NONFATAL"),
+		("/nounload", "/nounload"),
+		("/noworkingdir", "/NoWorkingDir"),
+		("/o", "/o"),
+		("/overwrite", "/OVERWRITE"),
+		("/packed", "/packed"),
+		("/plugin", "/plugin"),
+		("/productversion", "/ProductVersion"),
+		("/r", "/r"),
+		("/rawnl", "/RAWNL"),
+		("/rebootok", "/REBOOTOK"),
+		("/redef", "/redef"),
+		("/regedit5", "/REGEDIT5"),
+		("/replace", "/REPLACE"),
 		("/resizetofit", "/RESIZETOFIT"),
-		("/resizetofitwidth", "/RESIZETOFITWIDTH"),
 		("/resizetofitheight", "/RESIZETOFITHEIGHT"),
+		("/resizetofitwidth", "/RESIZETOFITWIDTH"),
+		("/sd", "/SD"),
+		("/short", "/SHORT"),
+		("/silent", "/SILENT"),
+		("/solid", "/SOLID"),
+		("/strike", "/STRIKE"),
+		("/stringid", "/STRINGID"),
+		("/target", "/target"),
+		("/trimcenter", "/TRIMCENTER"),
 		("/trimleft", "/TRIMLEFT"),
 		("/trimright", "/TRIMRIGHT"),
-		("/trimcenter", "/TRIMCENTER"),
-		("/windows", "/windows"),
-		("/nonfatal", "/NONFATAL"),
-		("/nocustom", "/NOCUSTOM"),
-		("/uninstnocustom", "/UNINSTNOCUSTOM"),
-		("/componentsonlyoncustom", "/COMPONENTSONLYONCUSTOM"),
+		("/underline", "/UNDERLINE"),
 		(
 			"/uninstcomponentsonlyoncustom",
 			"/UNINSTCOMPONENTSONLYONCUSTOM",
 		),
-		("/fileexists", "/FILEEXISTS"),
-		("/rawnl", "/RAWNL"),
-		("/productversion", "/ProductVersion"),
-		("/noworkingdir", "/NoWorkingDir"),
-		("/r", "/r"),
-		("/a", "/a"),
-		("/e", "/e"),
-		("/o", "/o"),
-		("/x", "/x"),
-		("/ifempty", "/ifempty"),
-		("/ifnosubkeys", "/ifnosubkeys"),
-		("/ifnovalues", "/ifnovalues"),
-		("/nounload", "/nounload"),
-		("/plugin", "/plugin"),
-		("/ifndef", "/ifndef"),
-		("/redef", "/redef"),
-		("/date", "/date"),
+		("/uninstnocustom", "/UNINSTNOCUSTOM"),
 		("/utcdate", "/utcdate"),
-		("/file", "/file"),
-		("/intfmt", "/intfmt"),
-		("/math", "/math"),
-		("/ignorecase", "/ignorecase"),
-		("/packed", "/packed"),
-		("/target", "/target"),
+		("/windows", "/windows"),
+		("/x", "/x"),
 	])
 });
 
-/// Maps lowercased global parameter prefixes (e.g. `/lang=`) to their canonical casing.
+/// Maps lowercased parameter prefixes (e.g. `/timeout=`) to their canonical casing.
 pub static GLOBAL_PARAMETER_PREFIXES: LazyLock<HashMap<&'static str, &'static str>> =
 	LazyLock::new(|| {
 		HashMap::from([
-			("/lang=", "/LANG="),
-			("/timeout=", "/TIMEOUT="),
 			("/charset=", "/CHARSET="),
-			("/imgid=", "/IMGID="),
 			("/customstring=", "/CUSTOMSTRING="),
-			("/uninstcustomstring=", "/UNINSTCUSTOMSTRING="),
+			("/imgid=", "/IMGID="),
+			("/lang=", "/LANG="),
 			("/oname=", "/oname="),
+			("/timeout=", "/TIMEOUT="),
+			("/uninstcustomstring=", "/UNINSTCUSTOMSTRING="),
 		])
 	});
 
-/// Maps lowercased instruction names to their per-instruction parameter casing tables.
+/// Maps lowercased instruction names to the canonical casing of their parameters.
 pub static INSTRUCTION_PARAMETERS: LazyLock<
 	HashMap<&'static str, HashMap<&'static str, &'static str>>,
 > = LazyLock::new(|| {
-	let mut builder: HashMap<&str, HashMap<&str, &str>> = HashMap::new();
-
-	let mut register = |instructions: &[&'static str], params: &[(&'static str, &'static str)]| {
-		for &instr in instructions {
-			let map = builder.entry(instr).or_default();
-			for &(k, v) in params {
-				map.insert(k, v);
-			}
-		}
-	};
-
-	// Boolean values
-	register(
-		&[
+	HashMap::from([
+		(
+			"addbrandingimage",
+			HashMap::from([
+				("bottom", "bottom"),
+				("left", "left"),
+				("right", "right"),
+				("top", "top"),
+			]),
+		),
+		(
 			"allowrootdirinstall",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
 			"allowskipfiles",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
 			"autoclosewindow",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		("changeui", HashMap::from([("dlg_id", "dlg_id")])),
+		(
 			"crccheck",
-			"manifestdpiaware",
-			"manifestdisablewindowfiltering",
-			"manifestgdiscaling",
-			"manifestlongpathaware",
-			"setautoclose",
-			"setdatablockoptimize",
-			"setdatesave",
-			"setpluginunload",
-			"unicode",
-			"windowicon",
-		],
-		&[("true", "true"), ("false", "false")],
-	);
-
-	register(
-		&[
-			"crccheck",
-			"logset",
-			"lockwindow",
-			"setcompress",
-			"setdatesave",
-			"setdatablockoptimize",
-			"setoverwrite",
-			"windowicon",
-			"xpstyle",
-			"licenseforceselection",
-		],
-		&[("on", "on"), ("off", "off")],
-	);
-
-	// FileOpen modes
-	register(&["fileopen"], &[("r", "r"), ("w", "w"), ("a", "a")]);
-
-	// Compression algorithms
-	register(
-		&["setcompressor"],
-		&[("zlib", "zlib"), ("bzip2", "bzip2"), ("lzma", "lzma")],
-	);
-
-	// CPU targets
-	register(&["target"], &[("x86", "x86"), ("amd64", "amd64")]);
-
-	// SetOverwrite modes
-	register(
-		&["setoverwrite"],
-		&[
-			("try", "try"),
-			("ifnewer", "ifnewer"),
-			("ifdiff", "ifdiff"),
-			("lastused", "lastused"),
-		],
-	);
-
-	// SetCompress modes
-	register(&["setcompress"], &[("auto", "auto"), ("force", "force")]);
-
-	// SilentInstall
-	register(
-		&["silentinstall"],
-		&[
-			("normal", "normal"),
-			("silent", "silent"),
-			("silentlog", "silentlog"),
-		],
-	);
-
-	// SilentUnInstall / SetSilent
-	register(
-		&["silentuninstall", "setsilent"],
-		&[("normal", "normal"), ("silent", "silent")],
-	);
-
-	// ShowInstDetails / ShowUninstDetails
-	register(
-		&["showinstdetails", "showuninstdetails"],
-		&[
-			("hide", "hide"),
-			("show", "show"),
-			("nevershow", "nevershow"),
-		],
-	);
-
-	// SetDetailsView / DirShow
-	register(
-		&["setdetailsview", "dirshow"],
-		&[("show", "show"), ("hide", "hide")],
-	);
-
-	// SetDetailsPrint
-	register(
-		&["setdetailsprint"],
-		&[
-			("listonly", "listonly"),
-			("textonly", "textonly"),
-			("both", "both"),
-			("none", "none"),
-			("lastused", "lastused"),
-		],
-	);
-
-	// RequestExecutionLevel
-	register(
-		&["requestexecutionlevel"],
-		&[
-			("none", "none"),
-			("user", "user"),
-			("highest", "highest"),
-			("admin", "admin"),
-		],
-	);
-
-	// AddBrandingImage
-	register(
-		&["addbrandingimage"],
-		&[
-			("top", "top"),
-			("left", "left"),
-			("bottom", "bottom"),
-			("right", "right"),
-		],
-	);
-
-	// InstProgressFlags
-	register(
-		&["instprogressflags"],
-		&[("smooth", "smooth"), ("colored", "colored")],
-	);
-
-	// LicenseForceSelection
-	register(
-		&["licenseforceselection"],
-		&[("checkbox", "checkbox"), ("radiobuttons", "radiobuttons")],
-	);
-
-	// SetShellVarContext
-	register(
-		&["setshellvarcontext"],
-		&[("all", "all"), ("current", "current")],
-	);
-
-	// DirVerify
-	register(&["dirverify"], &[("auto", "auto"), ("leave", "leave")]);
-
-	// ExecShell / ExecShellWait
-	register(
-		&["execshell", "execshellwait"],
-		&[("open", "open"), ("print", "print")],
-	);
-
-	// Page / UninstPage
-	register(
-		&["page", "uninstpage"],
-		&[
-			("custom", "custom"),
-			("license", "license"),
-			("components", "components"),
-			("directory", "directory"),
-			("instfiles", "instfiles"),
-			("uninstconfirm", "uninstConfirm"),
-		],
-	);
-
-	// SetCtlColors
-	register(&["setctlcolors"], &[("transparent", "transparent")]);
-
-	// LockWindow
-	register(&["lockwindow"], &[("on", "on"), ("off", "off")]);
-
-	// SetRegView
-	register(&["setregview"], &[("default", "default")]);
-
-	// Registry root keys
-	register(
-		&[
+			HashMap::from([
+				("false", "false"),
+				("off", "off"),
+				("on", "on"),
+				("true", "true"),
+			]),
+		),
+		(
+			"createshortcut",
+			HashMap::from([
+				("alt", "ALT"),
+				("control", "CONTROL"),
+				("ext", "EXT"),
+				("shift", "SHIFT"),
+				("sw_hide", "SW_HIDE"),
+				("sw_show", "SW_SHOW"),
+				("sw_showmaximized", "SW_SHOWMAXIMIZED"),
+				("sw_showminimized", "SW_SHOWMINIMIZED"),
+				("sw_shownormal", "SW_SHOWNORMAL"),
+			]),
+		),
+		(
 			"deleteregkey",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"deleteregvalue",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
+			"dirshow",
+			HashMap::from([("hide", "hide"), ("show", "show")]),
+		),
+		(
+			"dirverify",
+			HashMap::from([("auto", "auto"), ("leave", "leave")]),
+		),
+		(
 			"enumregkey",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"enumregvalue",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
+			"execshell",
+			HashMap::from([("open", "open"), ("print", "print")]),
+		),
+		(
+			"execshellwait",
+			HashMap::from([("open", "open"), ("print", "print")]),
+		),
+		(
+			"fileopen",
+			HashMap::from([("a", "a"), ("r", "r"), ("w", "w")]),
+		),
+		(
+			"fileseek",
+			HashMap::from([("cur", "CUR"), ("end", "END"), ("set", "SET")]),
+		),
+		(
+			"getwinver",
+			HashMap::from([
+				("build", "BUILD"),
+				("major", "MAJOR"),
+				("minor", "MINOR"),
+				("servicepack", "SERVICEPACK"),
+			]),
+		),
+		(
 			"installdirregkey",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
+			"instprogressflags",
+			HashMap::from([("colored", "colored"), ("smooth", "smooth")]),
+		),
+		(
+			"licenseforceselection",
+			HashMap::from([
+				("checkbox", "checkbox"),
+				("off", "off"),
+				("on", "on"),
+				("radiobuttons", "radiobuttons"),
+			]),
+		),
+		("lockwindow", HashMap::from([("off", "off"), ("on", "on")])),
+		("logset", HashMap::from([("off", "off"), ("on", "on")])),
+		(
+			"manifestdisablewindowfiltering",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"manifestdpiaware",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"manifestgdiscaling",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"manifestlongpathaware",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"manifestsupportedos",
+			HashMap::from([
+				("win10", "Win10"),
+				("win7", "Win7"),
+				("win8", "Win8"),
+				("win8.1", "Win8.1"),
+				("winvista", "WinVista"),
+			]),
+		),
+		(
+			"messagebox",
+			HashMap::from([
+				("idabort", "IDABORT"),
+				("idcancel", "IDCANCEL"),
+				("idignore", "IDIGNORE"),
+				("idno", "IDNO"),
+				("idok", "IDOK"),
+				("idretry", "IDRETRY"),
+				("idyes", "IDYES"),
+				("mb_abortretryignore", "MB_ABORTRETRYIGNORE"),
+				("mb_defbutton1", "MB_DEFBUTTON1"),
+				("mb_defbutton2", "MB_DEFBUTTON2"),
+				("mb_defbutton3", "MB_DEFBUTTON3"),
+				("mb_defbutton4", "MB_DEFBUTTON4"),
+				("mb_iconexclamation", "MB_ICONEXCLAMATION"),
+				("mb_iconinformation", "MB_ICONINFORMATION"),
+				("mb_iconquestion", "MB_ICONQUESTION"),
+				("mb_iconstop", "MB_ICONSTOP"),
+				("mb_ok", "MB_OK"),
+				("mb_okcancel", "MB_OKCANCEL"),
+				("mb_retrycancel", "MB_RETRYCANCEL"),
+				("mb_right", "MB_RIGHT"),
+				("mb_setforeground", "MB_SETFOREGROUND"),
+				("mb_topmost", "MB_TOPMOST"),
+				("mb_usericon", "MB_USERICON"),
+				("mb_yesno", "MB_YESNO"),
+				("mb_yesnocancel", "MB_YESNOCANCEL"),
+			]),
+		),
+		(
+			"page",
+			HashMap::from([
+				("components", "components"),
+				("custom", "custom"),
+				("directory", "directory"),
+				("instfiles", "instfiles"),
+				("license", "license"),
+				("uninstconfirm", "uninstConfirm"),
+			]),
+		),
+		(
 			"readregdword",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"readregstr",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
+			"requestexecutionlevel",
+			HashMap::from([
+				("admin", "admin"),
+				("highest", "highest"),
+				("none", "none"),
+				("user", "user"),
+			]),
+		),
+		(
+			"setautoclose",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"setcompress",
+			HashMap::from([
+				("auto", "auto"),
+				("force", "force"),
+				("off", "off"),
+				("on", "on"),
+			]),
+		),
+		(
+			"setcompressor",
+			HashMap::from([("bzip2", "bzip2"), ("lzma", "lzma"), ("zlib", "zlib")]),
+		),
+		(
+			"setctlcolors",
+			HashMap::from([("transparent", "transparent")]),
+		),
+		(
+			"setdatablockoptimize",
+			HashMap::from([
+				("false", "false"),
+				("off", "off"),
+				("on", "on"),
+				("true", "true"),
+			]),
+		),
+		(
+			"setdatesave",
+			HashMap::from([
+				("false", "false"),
+				("off", "off"),
+				("on", "on"),
+				("true", "true"),
+			]),
+		),
+		(
+			"setdetailsprint",
+			HashMap::from([
+				("both", "both"),
+				("lastused", "lastused"),
+				("listonly", "listonly"),
+				("none", "none"),
+				("textonly", "textonly"),
+			]),
+		),
+		(
+			"setdetailsview",
+			HashMap::from([("hide", "hide"), ("show", "show")]),
+		),
+		(
+			"setfileattributes",
+			HashMap::from([
+				("archive", "ARCHIVE"),
+				("hidden", "HIDDEN"),
+				("offline", "OFFLINE"),
+				("readonly", "READONLY"),
+				("system", "SYSTEM"),
+				("temporary", "TEMPORARY"),
+			]),
+		),
+		(
+			"setoverwrite",
+			HashMap::from([
+				("ifdiff", "ifdiff"),
+				("ifnewer", "ifnewer"),
+				("lastused", "lastused"),
+				("off", "off"),
+				("on", "on"),
+				("try", "try"),
+			]),
+		),
+		(
+			"setpluginunload",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		("setregview", HashMap::from([("default", "default")])),
+		(
+			"setshellvarcontext",
+			HashMap::from([("all", "all"), ("current", "current")]),
+		),
+		(
+			"setsilent",
+			HashMap::from([("normal", "normal"), ("silent", "silent")]),
+		),
+		(
+			"showinstdetails",
+			HashMap::from([
+				("hide", "hide"),
+				("nevershow", "nevershow"),
+				("show", "show"),
+			]),
+		),
+		(
+			"showuninstdetails",
+			HashMap::from([
+				("hide", "hide"),
+				("nevershow", "nevershow"),
+				("show", "show"),
+			]),
+		),
+		(
+			"showwindow",
+			HashMap::from([
+				("sw_hide", "SW_HIDE"),
+				("sw_show", "SW_SHOW"),
+				("sw_showmaximized", "SW_SHOWMAXIMIZED"),
+				("sw_showminimized", "SW_SHOWMINIMIZED"),
+				("sw_shownormal", "SW_SHOWNORMAL"),
+			]),
+		),
+		(
+			"silentinstall",
+			HashMap::from([
+				("normal", "normal"),
+				("silent", "silent"),
+				("silentlog", "silentlog"),
+			]),
+		),
+		(
+			"silentuninstall",
+			HashMap::from([("normal", "normal"), ("silent", "silent")]),
+		),
+		(
+			"target",
+			HashMap::from([("amd64", "amd64"), ("x86", "x86")]),
+		),
+		(
+			"unicode",
+			HashMap::from([("false", "false"), ("true", "true")]),
+		),
+		(
+			"uninstpage",
+			HashMap::from([
+				("components", "components"),
+				("custom", "custom"),
+				("directory", "directory"),
+				("instfiles", "instfiles"),
+				("license", "license"),
+				("uninstconfirm", "uninstConfirm"),
+			]),
+		),
+		(
+			"windowicon",
+			HashMap::from([
+				("false", "false"),
+				("off", "off"),
+				("on", "on"),
+				("true", "true"),
+			]),
+		),
+		(
 			"writeregbin",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"writeregdword",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"writeregexpandstr",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"writeregmultistr",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"writeregnone",
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		(
 			"writeregstr",
-		],
-		&[
-			("hkcr", "HKCR"),
-			("hkcr32", "HKCR32"),
-			("hkcr64", "HKCR64"),
-			("hklm", "HKLM"),
-			("hklm32", "HKLM32"),
-			("hklm64", "HKLM64"),
-			("hkcu", "HKCU"),
-			("hkcu32", "HKCU32"),
-			("hkcu64", "HKCU64"),
-			("hku", "HKU"),
-			("hkcc", "HKCC"),
-			("hkdd", "HKDD"),
-			("hkpd", "HKPD"),
-			("shctx", "SHCTX"),
-		],
-	);
-
-	// MessageBox flags and return values
-	register(
-		&["messagebox"],
-		&[
-			("mb_ok", "MB_OK"),
-			("mb_okcancel", "MB_OKCANCEL"),
-			("mb_abortretryignore", "MB_ABORTRETRYIGNORE"),
-			("mb_retrycancel", "MB_RETRYCANCEL"),
-			("mb_yesno", "MB_YESNO"),
-			("mb_yesnocancel", "MB_YESNOCANCEL"),
-			("mb_iconexclamation", "MB_ICONEXCLAMATION"),
-			("mb_iconinformation", "MB_ICONINFORMATION"),
-			("mb_iconquestion", "MB_ICONQUESTION"),
-			("mb_iconstop", "MB_ICONSTOP"),
-			("mb_usericon", "MB_USERICON"),
-			("mb_topmost", "MB_TOPMOST"),
-			("mb_setforeground", "MB_SETFOREGROUND"),
-			("mb_right", "MB_RIGHT"),
-			("mb_defbutton1", "MB_DEFBUTTON1"),
-			("mb_defbutton2", "MB_DEFBUTTON2"),
-			("mb_defbutton3", "MB_DEFBUTTON3"),
-			("mb_defbutton4", "MB_DEFBUTTON4"),
-			("idok", "IDOK"),
-			("idcancel", "IDCANCEL"),
-			("idyes", "IDYES"),
-			("idno", "IDNO"),
-			("idabort", "IDABORT"),
-			("idretry", "IDRETRY"),
-			("idignore", "IDIGNORE"),
-		],
-	);
-
-	// ShowWindow constants
-	register(
-		&["createshortcut", "showwindow"],
-		&[
-			("sw_shownormal", "SW_SHOWNORMAL"),
-			("sw_showmaximized", "SW_SHOWMAXIMIZED"),
-			("sw_showminimized", "SW_SHOWMINIMIZED"),
-			("sw_hide", "SW_HIDE"),
-			("sw_show", "SW_SHOW"),
-		],
-	);
-
-	// Hotkey modifiers
-	register(
-		&["createshortcut"],
-		&[
-			("alt", "ALT"),
-			("control", "CONTROL"),
-			("ext", "EXT"),
-			("shift", "SHIFT"),
-		],
-	);
-
-	// File attributes
-	register(
-		&["setfileattributes"],
-		&[
-			("archive", "ARCHIVE"),
-			("hidden", "HIDDEN"),
-			("offline", "OFFLINE"),
-			("readonly", "READONLY"),
-			("system", "SYSTEM"),
-			("temporary", "TEMPORARY"),
-		],
-	);
-
-	// FileSeek modes
-	register(
-		&["fileseek"],
-		&[("set", "SET"), ("cur", "CUR"), ("end", "END")],
-	);
-
-	// GetWinVer fields
-	register(
-		&["getwinver"],
-		&[
-			("major", "MAJOR"),
-			("minor", "MINOR"),
-			("build", "BUILD"),
-			("servicepack", "SERVICEPACK"),
-		],
-	);
-
-	// ManifestSupportedOS values
-	register(
-		&["manifestsupportedos"],
-		&[
-			("winvista", "WinVista"),
-			("win7", "Win7"),
-			("win8", "Win8"),
-			("win8.1", "Win8.1"),
-			("win10", "Win10"),
-		],
-	);
-
-	// ChangeUI dialog identifiers
-	register(&["changeui"], &[("dlg_id", "dlg_id")]);
-
-	builder
+			HashMap::from([
+				("hkcc", "HKCC"),
+				("hkcr", "HKCR"),
+				("hkcr32", "HKCR32"),
+				("hkcr64", "HKCR64"),
+				("hkcu", "HKCU"),
+				("hkcu32", "HKCU32"),
+				("hkcu64", "HKCU64"),
+				("hkdd", "HKDD"),
+				("hklm", "HKLM"),
+				("hklm32", "HKLM32"),
+				("hklm64", "HKLM64"),
+				("hkpd", "HKPD"),
+				("hku", "HKU"),
+				("shctx", "SHCTX"),
+			]),
+		),
+		("xpstyle", HashMap::from([("off", "off"), ("on", "on")])),
+	])
 });

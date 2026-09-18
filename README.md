@@ -8,9 +8,11 @@
 
 ## Description
 
-This is a Rust implementation of [`dent`](https://www.npmjs.org/package/@nsis/dent-cli), a NodeJS-based formatting tool for NSIS scripts.
+Ardent formats NSIS scripts in [Dent style](https://github.com/idleberg/nsis-org/tree/main/packages/dent-spec), conforming to the Dent Style Specification.
 
-It aims to be fully compatible while making distribution easier for people outside the NodeJS ecosystem.
+The specification defines the style — casing, indentation, blank lines, quoting and wrapping — as prose, data tables and byte-exact conformance cases. Ardent generates its lookup tables from those tables (`mise run spec:codegen`) and runs those cases as tests, so it and [`dent`](https://www.npmjs.org/package/@nsis/dent-cli), the TypeScript implementation, cannot drift apart. Where Ardent and a case disagree, Ardent is wrong.
+
+Ardent is written in Rust, which makes distribution easier for people outside the NodeJS ecosystem.
 
 ## Installation
 

@@ -1,3 +1,8 @@
+//! Block-structure rules: which keywords open, close or continue a block.
+//!
+//! Generated from the Dent Style Specification 0.0.0 by `mise run spec:codegen`.
+//! Do not edit — change the spec instead.
+
 use std::collections::HashSet;
 use std::sync::LazyLock;
 
@@ -40,18 +45,18 @@ pub static OPEN: LazyLock<HashSet<String>> = LazyLock::new(|| {
 /// without pushing to the indent stack.
 pub static CASE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
+		"${Case_Else}",
 		"${Case}",
 		"${Case2}",
 		"${Case3}",
 		"${Case4}",
 		"${Case5}",
 		"${CaseElse}",
-		"${Case_Else}",
 		"${Default}",
 	])
 });
 
-/// Keywords that close an indentation block (e.g. `SectionEnd`, `FunctionEnd`, `!endif`).
+/// Keywords that close an indentation block (e.g. `SectionEnd`, `!endif`).
 pub static CLOSE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!endif",
@@ -73,23 +78,23 @@ pub static CLOSE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	])
 });
 
-/// Keywords that sit at the opener's indent level within a block (e.g. `!else`, `${ElseIf}`).
+/// Keywords printed at the opening keyword’s level without changing the current depth (e.g. `${Else}`).
 pub static MID: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!else",
 		"!elseif",
+		"${AndIf}",
+		"${AndIfNot}",
+		"${AndUnless}",
 		"${Else}",
 		"${ElseIf}",
 		"${ElseIfNot}",
 		"${ElseUnless}",
-		"${AndIf}",
-		"${AndIfNot}",
-		"${AndUnless}",
 		"${OrIf}",
 		"${OrIfNot}",
 		"${OrUnless}",
 	])
 });
 
-/// Keywords that close the current block after being printed at the current indent level.
+/// Keywords printed at the current level that then close the block (e.g. `${Break}`).
 pub static CLOSE_AFTER: LazyLock<HashSet<String>> = LazyLock::new(|| lower_set(&["${Break}"]));

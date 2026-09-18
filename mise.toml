@@ -42,6 +42,14 @@ run = "cargo test"
 description = "Compare Node.js and Rust formatter output on provided input files"
 run = "bun tasks/compare.ts"
 
+[tasks."spec:codegen"]
+description = "Regenerate the lookup tables from the Dent Style Specification"
+run = "bun tasks/codegen.ts"
+
+[tasks."spec:check"]
+description = "Verify the lookup tables are in step with the installed specification"
+run = "bun tasks/codegen.ts --check"
+
 [tasks."docs:dev"]
 description = "Start the documentation dev server (served under /ardent)"
 run = "pnpm --filter web dev"

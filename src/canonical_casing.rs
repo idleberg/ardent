@@ -1,10 +1,14 @@
+//! Canonical casing lookup table for NSIS instructions and compiler commands.
+//!
+//! Generated from the Dent Style Specification 0.0.0 by `mise run spec:codegen`.
+//! Do not edit — change the spec instead.
+
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
 /// Maps lowercased NSIS instruction names to their canonical casing.
 pub static CANONICAL_CASING: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
 	HashMap::from([
-		// Compiler commands (all lowercase by convention)
 		("!addincludedir", "!addincludedir"),
 		("!addplugindir", "!addplugindir"),
 		("!appendfile", "!appendfile"),
@@ -43,7 +47,6 @@ pub static CANONICAL_CASING: LazyLock<HashMap<&'static str, &'static str>> = Laz
 		("!uninstfinalize", "!uninstfinalize"),
 		("!verbose", "!verbose"),
 		("!warning", "!warning"),
-		// Instructions & block keywords (canonical PascalCase)
 		("abort", "Abort"),
 		("addbrandingimage", "AddBrandingImage"),
 		("addsize", "AddSize"),
