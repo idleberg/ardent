@@ -932,6 +932,28 @@ mod tests {
 	}
 
 	#[test]
+	fn format_else_if_chain_at_opener_level() {
+		let result = format_with_defaults(
+			"!if ${X} == 1\nDetailPrint \"one\"\n!else if ${X} == 2\nDetailPrint \"two\"\n!else\nDetailPrint \"other\"\n!endif\n",
+		);
+		assert_eq!(
+			result,
+			"!if ${X} == 1\n\tDetailPrint \"one\"\n!else if ${X} == 2\n\tDetailPrint \"two\"\n!else\n\tDetailPrint \"other\"\n!endif\n"
+		);
+	}
+
+	#[test]
+	fn format_else_ifdef_chain_at_opener_level() {
+		let result = format_with_defaults(
+			"!ifdef A\nDetailPrint \"a\"\n!else ifdef B\nDetailPrint \"b\"\n!endif\n",
+		);
+		assert_eq!(
+			result,
+			"!ifdef A\n\tDetailPrint \"a\"\n!else ifdef B\n\tDetailPrint \"b\"\n!endif\n"
+		);
+	}
+
+	#[test]
 	fn format_close_after_keyword() {
 		let result = format_with_defaults(
 			"${Switch} $0\n${Case} 1\nDetailPrint \"one\"\n${Break}\n${EndSwitch}\n",
