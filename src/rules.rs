@@ -82,7 +82,6 @@ pub static CLOSE: LazyLock<HashSet<String>> = LazyLock::new(|| {
 pub static MID: LazyLock<HashSet<String>> = LazyLock::new(|| {
 	lower_set(&[
 		"!else",
-		"!elseif",
 		"${AndIf}",
 		"${AndIfNot}",
 		"${AndUnless}",
