@@ -63,7 +63,7 @@ Prefer single quotes instead of double quotes.
 
 ### `--comment-style`
 
-Specify whether you want to unify comment markers to `#`or `;`. Block comments are never touched. Accepts `hash` or `semi`.
+Specify whether you want to unify comment markers to `#` or `;`. Block comments are never touched. Accepts `hash` or `semi`.
 
 ### `--no-trim`
 

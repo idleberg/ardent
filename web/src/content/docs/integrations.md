@@ -9,7 +9,7 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 ### VS Code
 
-[VS Code](https://www.sublimetext.com/) Visual Studio Code is a free, open source AI code editor. It integrates Ardent via the [vscode-nsis](https://marketplace.visualstudio.com/items?itemName=idleberg.nsis) extension. Users of VS Codium, Cursor, Antigravity ort Windsurf install it from [Open VSX](https://open-vsx.org/extension/idleberg/nsis) instead.
+[Visual Studio Code](https://code.visualstudio.com/) is a free, open source AI code editor. It integrates Ardent via the [vscode-nsis](https://marketplace.visualstudio.com/items?itemName=idleberg.nsis) extension. Users of VSCodium, Cursor, Antigravity or Windsurf install it from [Open VSX](https://open-vsx.org/extension/idleberg/nsis) instead.
 
 ### Sublime Text
 
@@ -32,5 +32,5 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 [Helix](https://helix-editor.com/) is a modal editor with multiple cursors, tree-sitter integration, language server support and more. Please upvote [pull request](https://github.com/helix-editor/helix/pull/15845) for NSIS support!
 
 :::caution
-Editors such as [Pulsar](https://packages.pulsar-edit.dev/packages/language-nsis) (formerly [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/)) are currently using a JavaScript implementation of Ardent. Hence they are not yet listed below.
+Editors such as [Pulsar](https://packages.pulsar-edit.dev/packages/language-nsis) (formerly [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/)) are currently using a JavaScript implementation of Ardent. Hence they are not here.
 :::

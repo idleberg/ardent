@@ -63,7 +63,6 @@ static COMPILER_KEYWORDS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
 		"!delfile",
 		"!echo",
 		"!else",
-		"!elseif",
 		"!endif",
 		"!error",
 		"!execute",
@@ -1115,6 +1114,13 @@ mod tests {
 	fn parse_error_reports_source_line() {
 		let err = parse("Nop\nFooBar\n").unwrap_err();
 		assert!(err.contains("error at 2:"), "{err}");
+	}
+
+	#[test]
+	fn parse_error_on_elseif_directive() {
+		// NSIS has no `!elseif`; conditions chain as `!else if …`, which makensis rejects too.
+		let err = parse("!if 1\nNop\n!elseif 2\nNop\n!endif\n").unwrap_err();
+		assert!(err.contains("error at 3:"), "{err}");
 	}
 
 	#[test]

@@ -19,7 +19,6 @@ pub static CANONICAL_CASING: LazyLock<HashMap<&'static str, &'static str>> = Laz
 		("!delfile", "!delfile"),
 		("!echo", "!echo"),
 		("!else", "!else"),
-		("!elseif", "!elseif"),
 		("!endif", "!endif"),
 		("!error", "!error"),
 		("!execute", "!execute"),
