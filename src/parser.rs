@@ -483,9 +483,9 @@ peg::parser! {
 				else { Err("not an instruction keyword") }
 			}
 
-		// Spec §6.4: a keyword in none of the tables is kept as written.
+		// Spec §6.4: a keyword in none of the tables is kept as written, compiler commands included.
 		rule unknown_keyword() -> String
-			= kw:$(['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
+			= kw:$("!"? ['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
 				kw.to_string()
 			}
 
@@ -728,6 +728,19 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "!define".to_string(),
 				args: vec!["FOO".to_string(), "bar".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_unknown_compiler_command() {
+		let nodes = parse("!FooBar \"arg\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "!FooBar".to_string(),
+				args: vec!["\"arg\"".to_string()],
 				comment: None,
 			}]
 		);
