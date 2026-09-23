@@ -509,7 +509,8 @@ peg::parser! {
 
 		rule bare_token() -> String
 			// An unmatched opening quote is an unterminated string, not a bare token (spec §2).
-			= !['"' | '\'' | '`'] s:$([^ ' ' | '\t' | '\r' | '\n' | ';' | '#']+) { s.to_string() }
+			// `;` and `#` only start a comment at the beginning of a token, as in makensis (spec §11.1).
+			= !['"' | '\'' | '`' | ';' | '#'] s:$([^ ' ' | '\t' | '\r' | '\n']+) { s.to_string() }
 
 		rule trailing_comment() -> TrailingComment
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) {
