@@ -758,6 +758,24 @@ fn is_block_close(node: &CSTNode) -> bool {
 	matches!(node, CSTNode::Instruction { keyword, .. } if CLOSE.contains(&keyword.to_lowercase()))
 }
 
+fn is_mid(node: &CSTNode) -> bool {
+	matches!(node, CSTNode::Instruction { keyword, .. } if MID.contains(&keyword.to_lowercase()))
+}
+
+/// A node after which the next line sits inside a block: an opener, or a `mid` keyword
+/// such as `${Else}`, which opens the next branch (§7.1).
+fn opens_inside(node: &CSTNode) -> bool {
+	is_block_open(node) || is_mid(node)
+}
+
+/// A node that ends the lines above it: a closer, a `mid` keyword, which closes the
+/// previous branch, or a `closeAfter` keyword such as `${Break}` (§7.1).
+fn closes_above(node: &CSTNode) -> bool {
+	is_block_close(node)
+		|| is_mid(node)
+		|| matches!(node, CSTNode::Instruction { keyword, .. } if CLOSE_AFTER.contains(&keyword.to_lowercase()))
+}
+
 fn is_label(node: &CSTNode) -> bool {
 	matches!(node, CSTNode::Label { .. })
 }
@@ -776,7 +794,7 @@ fn wants_blank_between(prev: &CSTNode, node: &CSTNode) -> bool {
 
 	// A chunk that opens right inside another one, or right below its own
 	// comment, stays attached to it.
-	if is_block_open(prev) || matches!(prev, CSTNode::Comment { .. }) {
+	if opens_inside(prev) || matches!(prev, CSTNode::Comment { .. }) {
 		return false;
 	}
 
@@ -826,7 +844,7 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 			if wants_blank_between(prev, node) {
 				result.push(CSTNode::Blank);
 			} else if matches!(node, CSTNode::Comment { .. })
-				&& !is_block_open(prev)
+				&& !opens_inside(prev)
 				&& !matches!(prev, CSTNode::Comment { .. })
 			{
 				let mut j = i + 1;
@@ -838,7 +856,7 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 				if j < nodes.len() && comment_opens_chunk(prev, &nodes[j]) {
 					result.push(CSTNode::Blank);
 				}
-			} else if is_block_close(prev) && !is_block_close(node) && !is_block_open(node) {
+			} else if is_block_close(prev) && !closes_above(node) && !is_block_open(node) {
 				result.push(CSTNode::Blank);
 			}
 		}
