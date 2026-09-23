@@ -387,7 +387,7 @@ peg::parser! {
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) line_end() {
 				CSTNode::Comment {
 					style: if s == "#" { CommentStyle::Hash } else { CommentStyle::Semicolon },
-					value: value.trim_start().to_string(),
+					value: value.trim().to_string(),
 				}
 			}
 
@@ -516,7 +516,7 @@ peg::parser! {
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) {
 				TrailingComment {
 					style: if s == "#" { CommentStyle::Hash } else { CommentStyle::Semicolon },
-					value: value.trim_start().to_string(),
+					value: value.trim().to_string(),
 				}
 			}
 

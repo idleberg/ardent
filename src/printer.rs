@@ -154,8 +154,7 @@ fn print_comment(
 			.collect::<Vec<_>>()
 			.join(eol)
 	} else {
-		let marker = comment_marker(style, options);
-		format!("{prefix}{marker} {value}")
+		format!("{prefix}{}", marked_comment(style, value, options))
 	}
 }
 
@@ -662,8 +661,17 @@ fn print_instruction(
 }
 
 fn print_trailing_comment(comment: &TrailingComment, options: &FormatterOptions) -> String {
-	let marker = comment_marker(&comment.style, options);
-	format!("{marker} {}", comment.value)
+	marked_comment(&comment.style, &comment.value, options)
+}
+
+/// An empty comment is just its marker, so it leaves no trailing space (§8).
+fn marked_comment(style: &CommentStyle, value: &str, options: &FormatterOptions) -> String {
+	let marker = comment_marker(style, options);
+	if value.is_empty() {
+		marker.to_string()
+	} else {
+		format!("{marker} {value}")
+	}
 }
 
 fn wrap_instruction(
