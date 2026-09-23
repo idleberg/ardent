@@ -568,11 +568,8 @@ fn preprocess_with_map(input: &str) -> (String, Vec<(usize, usize)>) {
 				None
 			};
 			if let Some(skip_to) = skip_to {
+				// makensis inserts nothing in place of a continuation (spec §2).
 				result.push_str(&without_bom[copy_start..i]);
-				// The injected space stands in for the whole continuation, so anchor it to
-				// the backslash that started it.
-				segments.push((result.len(), i));
-				result.push(' ');
 				i = skip_to;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
@@ -659,7 +656,7 @@ mod tests {
 	fn preprocess_preserves_unicode_with_continuation() {
 		let input = "DetailPrint \\\n  \"こんにちは\"\n";
 		let result = preprocess(input);
-		assert_eq!(result, "DetailPrint  \"こんにちは\"\n");
+		assert_eq!(result, "DetailPrint \"こんにちは\"\n");
 	}
 
 	#[test]
@@ -1109,13 +1106,13 @@ mod tests {
 	#[test]
 	fn preprocess_joins_continuation_lf() {
 		let result = preprocess("foo \\\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
 	fn preprocess_joins_continuation_crlf() {
 		let result = preprocess("foo \\\r\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
@@ -1127,13 +1124,13 @@ mod tests {
 	#[test]
 	fn preprocess_joins_continuation_trailing_whitespace_lf() {
 		let result = preprocess("foo \\  \n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
 	fn preprocess_joins_continuation_trailing_whitespace_crlf() {
 		let result = preprocess("foo \\ \t\r\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
@@ -1162,7 +1159,7 @@ mod tests {
 	fn source_line_col_maps_across_a_joined_line() {
 		let source = "Nop\nDetailPrint \\\n  \"a\"\nFooBar\n";
 		let (preprocessed, segments) = preprocess_with_map(source);
-		assert_eq!(preprocessed, "Nop\nDetailPrint  \"a\"\nFooBar\n");
+		assert_eq!(preprocessed, "Nop\nDetailPrint \"a\"\nFooBar\n");
 
 		// The joined text before the continuation still maps 1:1.
 		let detail_print = preprocessed.find("DetailPrint").unwrap();
