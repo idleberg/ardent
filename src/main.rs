@@ -229,12 +229,24 @@ fn init_formatter(
 	})
 }
 
+/// Checks `contents` like [`Formatter::check`], but keeps a leading byte order mark on the result.
+/// Formatting strips the mark, yet makensis reads it to pick the file's encoding, so a file that is
+/// written back must keep it.
+fn check_keeping_bom(formatter: &Formatter, contents: &str) -> Result<Option<String>, String> {
+	let Some(text) = contents.strip_prefix('\u{FEFF}') else {
+		return formatter.check(contents);
+	};
+	Ok(formatter
+		.check(text)?
+		.map(|formatted| format!("\u{FEFF}{formatted}")))
+}
+
 fn format_stdin(formatter: &Formatter) -> Result<(String, Option<String>), ExitCode> {
 	let raw_contents = read_stdin().map_err(|e| {
 		logger_error!("reading stdin: {e}");
 		ExitCode::from(2)
 	})?;
-	let result = formatter.check(&raw_contents).map_err(|e| {
+	let result = check_keeping_bom(formatter, &raw_contents).map_err(|e| {
 		logger_error!("parsing stdin: {e}");
 		ExitCode::from(2)
 	})?;
@@ -272,7 +284,7 @@ fn for_each_file(
 			}
 		};
 
-		let result = match formatter.check(&raw_contents) {
+		let result = match check_keeping_bom(formatter, &raw_contents) {
 			Ok(r) => r,
 			Err(e) => {
 				logger_error!("parsing {}: {e}", blue(&file.display()));
@@ -546,6 +558,25 @@ fn main() -> ExitCode {
 mod tests {
 	use super::*;
 	use std::fs;
+
+	#[test]
+	fn check_keeping_bom_restores_the_mark() {
+		let formatter = Formatter::new(FormatterOptions::default()).unwrap();
+
+		assert_eq!(
+			check_keeping_bom(&formatter, "\u{FEFF}name \"a\"\n").unwrap(),
+			Some("\u{FEFF}Name \"a\"\n".to_string())
+		);
+		// A formatted file with a mark is unchanged, not reformatted to drop it.
+		assert_eq!(
+			check_keeping_bom(&formatter, "\u{FEFF}Name \"a\"\n").unwrap(),
+			None
+		);
+		assert_eq!(
+			check_keeping_bom(&formatter, "name \"a\"\n").unwrap(),
+			Some("Name \"a\"\n".to_string())
+		);
+	}
 
 	#[test]
 	fn resolve_files_expands_directory() {
