@@ -106,6 +106,11 @@ pub fn print(nodes: &[CSTNode], options: &FormatterOptions, eol: &str) -> String
 		}
 	}
 
+	// Nothing to print yields empty output, not a lone line ending (§4).
+	if lines.is_empty() {
+		return String::new();
+	}
+
 	let mut result = lines.join(eol);
 	result.push_str(eol);
 	result
