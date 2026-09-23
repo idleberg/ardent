@@ -142,13 +142,13 @@ fn print_comment(
 				let line = line.strip_suffix('\r').unwrap_or(line);
 				if i == 0 {
 					format!("{prefix}/*{line}")
+				} else if i == comment_lines.len() - 1 {
+					format!("{prefix}{line}*/")
+				} else if line.trim().is_empty() {
+					String::new()
 				} else {
-					let stripped = line.trim_start();
-					if i == comment_lines.len() - 1 {
-						format!("{prefix} {stripped}*/")
-					} else {
-						format!("{prefix} {stripped}")
-					}
+					// The parser already made the line relative to the opening `/*`.
+					format!("{prefix}{line}")
 				}
 			})
 			.collect::<Vec<_>>()

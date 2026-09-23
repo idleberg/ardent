@@ -120,16 +120,18 @@ fn conformance_cases() {
 	for id in &cases {
 		let case_dir = cases_dir.join(id);
 		let input = fs::read_to_string(case_dir.join("input.nsi")).expect("case input");
-		let formatter = Formatter::new(read_options(&case_dir)).expect("valid case options");
+		let formatter = Formatter::new(read_options(&case_dir));
 
 		if case_dir.join("error").is_file() {
-			if formatter.format(&input).is_ok() {
+			// Invalid options (§3) are rejected when the formatter is built, not when it formats.
+			if formatter.is_ok_and(|formatter| formatter.format(&input).is_ok()) {
 				failures.push(format!("{id}: expected an error, but formatting succeeded"));
 			}
 			continue;
 		}
 
 		let expected = fs::read_to_string(case_dir.join("output.nsi")).expect("case output");
+		let formatter = formatter.unwrap_or_else(|e| panic!("{id}: invalid case options: {e}"));
 
 		match formatter.format(&input) {
 			Err(e) => failures.push(format!("{id}: formatting failed: {e}")),

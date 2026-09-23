@@ -348,6 +348,23 @@ fn is_instruction_keyword(kw: &str) -> bool {
 	INSTRUCTION_LOOKUP.contains(&kw.to_lowercase())
 }
 
+/// Makes a block comment's inner lines relative to the indentation of its opening `/*` (§11).
+///
+/// A line that does not start with that exact indentation is dedented fully instead.
+fn rebase_block_comment(value: &str, indent: &str) -> String {
+	value
+		.split('\n')
+		.enumerate()
+		.map(|(i, line)| match i {
+			0 => line,
+			_ => line
+				.strip_prefix(indent)
+				.unwrap_or_else(|| line.trim_start()),
+		})
+		.collect::<Vec<_>>()
+		.join("\n")
+}
+
 peg::parser! {
 	grammar nsis_parser() for str {
 		pub rule script() -> Vec<CSTNode>
@@ -375,10 +392,10 @@ peg::parser! {
 			}
 
 		rule block_comment() -> CSTNode
-			= _() "/*" value:$((!("*/") [_])*) "*/" _() line_end()? {
+			= indent:$(_()) "/*" value:$((!("*/") [_])*) "*/" _() line_end()? {
 				CSTNode::Comment {
 					style: CommentStyle::Block,
-					value: value.to_string(),
+					value: rebase_block_comment(value, indent),
 				}
 			}
 
@@ -438,6 +455,7 @@ peg::parser! {
 			/ macro_keyword()
 			/ plugin_call_keyword()
 			/ instruction_keyword()
+			/ unknown_keyword()
 
 		rule compiler_keyword() -> String
 			= kw:$("!" ['a'..='z' | 'A'..='Z']+) {?
@@ -465,6 +483,12 @@ peg::parser! {
 				else { Err("not an instruction keyword") }
 			}
 
+		// Spec §6.4: a keyword in none of the tables is kept as written.
+		rule unknown_keyword() -> String
+			= kw:$(['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
+				kw.to_string()
+			}
+
 		rule arguments() -> Vec<String>
 			= args:(_() a:argument() { a })* { args }
 
@@ -484,7 +508,8 @@ peg::parser! {
 			  ) { s.to_string() }
 
 		rule bare_token() -> String
-			= s:$([^ ' ' | '\t' | '\r' | '\n' | ';' | '#']+) { s.to_string() }
+			// An unmatched opening quote is an unterminated string, not a bare token (spec §2).
+			= !['"' | '\'' | '`'] s:$([^ ' ' | '\t' | '\r' | '\n' | ';' | '#']+) { s.to_string() }
 
 		rule trailing_comment() -> TrailingComment
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) {
@@ -1112,7 +1137,7 @@ mod tests {
 
 	#[test]
 	fn parse_error_reports_source_line() {
-		let err = parse("Nop\nFooBar\n").unwrap_err();
+		let err = parse("Nop\nDetailPrint \"x\n").unwrap_err();
 		assert!(err.contains("error at 2:"), "{err}");
 	}
 
@@ -1127,9 +1152,9 @@ mod tests {
 	fn parse_error_line_accounts_for_continuations() {
 		// Each joined continuation removes a newline from the preprocessed text, so a naive
 		// position would drift one line earlier per continuation.
-		let input = "DetailPrint \\\n  \"a\"\nDetailPrint \\\n  \"b\"\nFooBar\n";
+		let input = "DetailPrint \\\n  \"a\"\nDetailPrint \\\n  \"b\"\nDetailPrint \"x\n";
 		let err = parse(input).unwrap_err();
-		assert!(err.contains("error at 5:7:"), "{err}");
+		assert!(err.contains("error at 5:15:"), "{err}");
 	}
 
 	#[test]
