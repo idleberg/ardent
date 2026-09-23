@@ -580,20 +580,19 @@ fn tokenize_arithmetic(arg: &str) -> Vec<String> {
 }
 
 fn join_with_compact_pipes(args: &[String]) -> String {
-	let mut result = String::new();
+	group_pipes(args).join(" ")
+}
+
+/// Merges `|` and its neighbours into one argument, so wrapping never breaks or spaces them (§10).
+fn group_pipes(args: &[String]) -> Vec<String> {
+	let mut groups: Vec<String> = Vec::new();
 	for (i, arg) in args.iter().enumerate() {
-		if arg == "|" {
-			result.push('|');
-		} else if i > 0 && args[i - 1] == "|" {
-			result.push_str(arg);
-		} else {
-			if !result.is_empty() {
-				result.push(' ');
-			}
-			result.push_str(arg);
+		match groups.last_mut() {
+			Some(last) if arg == "|" || args[i - 1] == "|" => last.push_str(arg),
+			_ => groups.push(arg.clone()),
 		}
 	}
-	result
+	groups
 }
 
 fn print_instruction(
@@ -710,7 +709,13 @@ fn wrap_instruction(
 	let mut result_lines: Vec<String> = Vec::new();
 	let mut current = format!("{indent}{keyword}");
 
-	for arg in args {
+	let words = if is_arithmetic {
+		args.to_vec()
+	} else {
+		group_pipes(args)
+	};
+
+	for arg in &words {
 		let candidate = format!("{current} {arg}");
 		if candidate.chars().count() + 2 > options.print_width
 			&& current.chars().count() > indent.chars().count()
