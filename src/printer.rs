@@ -697,13 +697,12 @@ fn wrap_instruction(
 		format!("{indent}{keyword} {}", join_fn(args))
 	};
 
-	let full_line = match trailing_comment {
-		Some(c) => format!("{single_line} {c}"),
-		None => single_line,
-	};
-
-	if full_line.chars().count() <= options.print_width {
-		return full_line;
+	// A trailing comment does not count toward the width (§10).
+	if single_line.chars().count() <= options.print_width {
+		return match trailing_comment {
+			Some(c) => format!("{single_line} {c}"),
+			None => single_line,
+		};
 	}
 
 	let cont_indent = format!(

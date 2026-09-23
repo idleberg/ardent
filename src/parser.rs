@@ -1153,10 +1153,17 @@ mod tests {
 	}
 
 	#[test]
-	fn parse_error_on_elseif_directive() {
-		// NSIS has no `!elseif`; conditions chain as `!else if …`, which makensis rejects too.
-		let err = parse("!if 1\nNop\n!elseif 2\nNop\n!endif\n").unwrap_err();
-		assert!(err.contains("error at 3:"), "{err}");
+	fn parse_elseif_as_unknown_directive() {
+		// NSIS has no `!elseif`; rejecting it is makensis's job, so it is kept as written (spec §6.4).
+		let nodes = parse("!elseif 2\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "!elseif".to_string(),
+				args: vec!["2".to_string()],
+				comment: None
+			}]
+		);
 	}
 
 	#[test]
