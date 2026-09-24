@@ -1,11 +1,11 @@
 {
   "version": 1,
   "entries": {
-    "https://idleberg.github.io/cli-usage": "sha256:3e1783134c2242f57a2259e82db19645f95d2a72a10a2f5eb266588d577f38f7",
-    "https://idleberg.github.io/formatting": "sha256:353ad0ee374324de31dff8dc4d4b0c61b72be4f239ead76cefb95573d7599b3d",
-    "https://idleberg.github.io/getting-started": "sha256:648e9761cae639e66ff185a5ccad7743713b04f59f868da5d064dc1821a6c16f",
-    "https://idleberg.github.io/": "sha256:85cd4bd193b04f1c7022e3366530b1ca868d2612b0970482491ce81c8f4b05fb",
-    "https://idleberg.github.io/integrations": "sha256:a4c4319790950a7f6f5a449a862a8b219a0c8052441537aae0a64293abab6f32",
-    "https://idleberg.github.io/playground": "sha256:fbaf4411f9e4c980f251f506ad18507535baa401e6efdcc7dff00a2d36ee01ed"
+    "https://idleberg.github.io/cli-usage": "sha256:618e24dea62b66bb2bdc13159ef13875b2ed56f6ae37fc13822bb7eb37bbe9be",
+    "https://idleberg.github.io/formatting": "sha256:d88beca3cb1144ded7edd59eb0b20e205d5e37c9ee4ed46cf80d44d6091d2b1f",
+    "https://idleberg.github.io/getting-started": "sha256:a12b901477dae189d4f337dbf88b3f3ce44153030bab61101a5845f795f5afed",
+    "https://idleberg.github.io/": "sha256:51d0b522c3640adfcfe5193fc48263c1beb5f0948ce45c4ca91cbbd9a86bc1ae",
+    "https://idleberg.github.io/integrations": "sha256:4fef644918d600d551e91dad5fd4e49ef2d25abea8190aa52278c704cf2e8485",
+    "https://idleberg.github.io/playground": "sha256:2fbdf995c60b6ad2c3e0d256094559cadd0687a163e4adcd7418d53e37f03da8"
   }
 }

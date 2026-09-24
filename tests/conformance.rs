@@ -103,7 +103,7 @@ fn conformance_cases() {
 	let Some(spec) = spec_dir() else {
 		eprintln!(
 			"skipping conformance cases: @nsis/dent-spec is not installed \
-			 (run `pnpm install`, or set DENT_SPEC_DIR)"
+			 (run `bun install`, or set DENT_SPEC_DIR)"
 		);
 		return;
 	};

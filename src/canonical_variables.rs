@@ -1,6 +1,6 @@
 //! Canonical casing lookup tables for NSIS built-in names.
 //!
-//! Generated from the Dent Style Specification 0.0.0 by `mise run spec:codegen`.
+//! Generated from the Dent Style Specification 0.1.0 by `mise run spec:codegen`.
 //! Do not edit — change the spec instead.
 
 use std::collections::HashMap;

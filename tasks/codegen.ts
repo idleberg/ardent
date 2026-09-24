@@ -37,7 +37,7 @@ function resolveSpecDir(): string {
 
 	console.error(
 		'Cannot find @nsis/dent-spec.\n' +
-			'Run `pnpm install`, or point DENT_SPEC_DIR at a checkout of the spec package.',
+			'Run `bun install`, or point DENT_SPEC_DIR at a checkout of the spec package.',
 	);
 	process.exit(1);
 }
