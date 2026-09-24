@@ -19,6 +19,10 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 [Zed](https://zed.dev/) is a minimal code editor crafted for speed and collaboration. It integrates Ardent via the [NSIS extension](https://zed.dev/extensions/nsis).
 
+### Pulsar
+
+[Pulsar](https://pulsar-edit.dev) is a community-led, hyper-hackable text editor formerly known as [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/). It integrates Ardent via the [language-nsis](https://web.pulsar-edit.dev/packages/language-nsis).
+
 ### Neovim
 
 [Neovim](https://neovim.io/) is a modern, fast and feature-rich editor that is fully compatible with Vim. It integrates Ardent via the [NSIS plugin](https://github.com/idleberg/ardent.nvim).
@@ -30,7 +34,3 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 ### Helix
 
 [Helix](https://helix-editor.com/) is a modal editor with multiple cursors, tree-sitter integration, language server support and more. Please upvote [pull request](https://github.com/helix-editor/helix/pull/15845) for NSIS support!
-
-:::caution
-Editors such as [Pulsar](https://packages.pulsar-edit.dev/packages/language-nsis) (formerly [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/)) are currently using a JavaScript implementation of Ardent. Hence they are not here.
-:::
