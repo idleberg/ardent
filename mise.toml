@@ -17,7 +17,7 @@ run = "cargo build --release"
 
 [tasks.checks]
 description = "Run all checks (formatting, linting)"
-depends = ["format:check", "lint", "test"]
+depends = ["spec:check", "format:check", "lint", "test"]
 
 [tasks.format]
 description = "Format Rust code"
