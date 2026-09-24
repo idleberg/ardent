@@ -348,6 +348,24 @@ fn is_instruction_keyword(kw: &str) -> bool {
 	INSTRUCTION_LOOKUP.contains(&kw.to_lowercase())
 }
 
+/// Makes a block comment's inner lines relative to the indentation of its opening `/*` (§11).
+///
+/// A line that does not start with that exact indentation is dedented fully instead.
+fn rebase_block_comment(value: &str, indent: &str) -> String {
+	value
+		.replace("\r\n", "\n")
+		.split(['\r', '\n'])
+		.enumerate()
+		.map(|(i, line)| match i {
+			0 => line,
+			_ => line
+				.strip_prefix(indent)
+				.unwrap_or_else(|| line.trim_start()),
+		})
+		.collect::<Vec<_>>()
+		.join("\n")
+}
+
 peg::parser! {
 	grammar nsis_parser() for str {
 		pub rule script() -> Vec<CSTNode>
@@ -370,15 +388,15 @@ peg::parser! {
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) line_end() {
 				CSTNode::Comment {
 					style: if s == "#" { CommentStyle::Hash } else { CommentStyle::Semicolon },
-					value: value.trim_start().to_string(),
+					value: value.trim().to_string(),
 				}
 			}
 
 		rule block_comment() -> CSTNode
-			= _() "/*" value:$((!("*/") [_])*) "*/" _() line_end()? {
+			= indent:$(_()) "/*" value:$((!("*/") [_])*) "*/" _() line_end()? {
 				CSTNode::Comment {
 					style: CommentStyle::Block,
-					value: value.to_string(),
+					value: rebase_block_comment(value, indent),
 				}
 			}
 
@@ -438,6 +456,7 @@ peg::parser! {
 			/ macro_keyword()
 			/ plugin_call_keyword()
 			/ instruction_keyword()
+			/ unknown_keyword()
 
 		rule compiler_keyword() -> String
 			= kw:$("!" ['a'..='z' | 'A'..='Z']+) {?
@@ -465,6 +484,12 @@ peg::parser! {
 				else { Err("not an instruction keyword") }
 			}
 
+		// Spec §6.4: a keyword in none of the tables is kept as written, compiler commands included.
+		rule unknown_keyword() -> String
+			= kw:$("!"? ['a'..='z' | 'A'..='Z' | '_'] ['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) {
+				kw.to_string()
+			}
+
 		rule arguments() -> Vec<String>
 			= args:(_() a:argument() { a })* { args }
 
@@ -484,13 +509,15 @@ peg::parser! {
 			  ) { s.to_string() }
 
 		rule bare_token() -> String
-			= s:$([^ ' ' | '\t' | '\r' | '\n' | ';' | '#']+) { s.to_string() }
+			// An unmatched opening quote is an unterminated string, not a bare token (spec §2).
+			// `;` and `#` only start a comment at the beginning of a token, as in makensis (spec §11.1).
+			= !['"' | '\'' | '`' | ';' | '#'] s:$([^ ' ' | '\t' | '\r' | '\n']+) { s.to_string() }
 
 		rule trailing_comment() -> TrailingComment
 			= _() s:$("#" / ";") value:$([^ '\r' | '\n']*) {
 				TrailingComment {
 					style: if s == "#" { CommentStyle::Hash } else { CommentStyle::Semicolon },
-					value: value.trim_start().to_string(),
+					value: value.trim().to_string(),
 				}
 			}
 
@@ -538,15 +565,14 @@ fn preprocess_with_map(input: &str) -> (String, Vec<(usize, usize)>) {
 				Some(j + 1)
 			} else if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
 				Some(j + 2)
+			} else if j < len && bytes[j] == b'\r' {
+				Some(j + 1)
 			} else {
 				None
 			};
 			if let Some(skip_to) = skip_to {
+				// makensis inserts nothing in place of a continuation (spec §2).
 				result.push_str(&without_bom[copy_start..i]);
-				// The injected space stands in for the whole continuation, so anchor it to
-				// the backslash that started it.
-				segments.push((result.len(), i));
-				result.push(' ');
 				i = skip_to;
 				while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
 					i += 1;
@@ -633,7 +659,7 @@ mod tests {
 	fn preprocess_preserves_unicode_with_continuation() {
 		let input = "DetailPrint \\\n  \"こんにちは\"\n";
 		let result = preprocess(input);
-		assert_eq!(result, "DetailPrint  \"こんにちは\"\n");
+		assert_eq!(result, "DetailPrint \"こんにちは\"\n");
 	}
 
 	#[test]
@@ -705,6 +731,19 @@ mod tests {
 			vec![CSTNode::Instruction {
 				keyword: "!define".to_string(),
 				args: vec!["FOO".to_string(), "bar".to_string()],
+				comment: None,
+			}]
+		);
+	}
+
+	#[test]
+	fn parse_unknown_compiler_command() {
+		let nodes = parse("!FooBar \"arg\"\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "!FooBar".to_string(),
+				args: vec!["\"arg\"".to_string()],
 				comment: None,
 			}]
 		);
@@ -1083,13 +1122,19 @@ mod tests {
 	#[test]
 	fn preprocess_joins_continuation_lf() {
 		let result = preprocess("foo \\\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_lone_cr() {
+		let result = preprocess("foo \\\r  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
 	fn preprocess_joins_continuation_crlf() {
 		let result = preprocess("foo \\\r\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
@@ -1101,42 +1146,49 @@ mod tests {
 	#[test]
 	fn preprocess_joins_continuation_trailing_whitespace_lf() {
 		let result = preprocess("foo \\  \n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
 	fn preprocess_joins_continuation_trailing_whitespace_crlf() {
 		let result = preprocess("foo \\ \t\r\n  bar");
-		assert_eq!(result, "foo  bar");
+		assert_eq!(result, "foo bar");
 	}
 
 	#[test]
 	fn parse_error_reports_source_line() {
-		let err = parse("Nop\nFooBar\n").unwrap_err();
+		let err = parse("Nop\nDetailPrint \"x\n").unwrap_err();
 		assert!(err.contains("error at 2:"), "{err}");
 	}
 
 	#[test]
-	fn parse_error_on_elseif_directive() {
-		// NSIS has no `!elseif`; conditions chain as `!else if …`, which makensis rejects too.
-		let err = parse("!if 1\nNop\n!elseif 2\nNop\n!endif\n").unwrap_err();
-		assert!(err.contains("error at 3:"), "{err}");
+	fn parse_elseif_as_unknown_directive() {
+		// NSIS has no `!elseif`; rejecting it is makensis's job, so it is kept as written (spec §6.4).
+		let nodes = parse("!elseif 2\n").unwrap();
+		assert_eq!(
+			nodes,
+			vec![CSTNode::Instruction {
+				keyword: "!elseif".to_string(),
+				args: vec!["2".to_string()],
+				comment: None
+			}]
+		);
 	}
 
 	#[test]
 	fn parse_error_line_accounts_for_continuations() {
 		// Each joined continuation removes a newline from the preprocessed text, so a naive
 		// position would drift one line earlier per continuation.
-		let input = "DetailPrint \\\n  \"a\"\nDetailPrint \\\n  \"b\"\nFooBar\n";
+		let input = "DetailPrint \\\n  \"a\"\nDetailPrint \\\n  \"b\"\nDetailPrint \"x\n";
 		let err = parse(input).unwrap_err();
-		assert!(err.contains("error at 5:7:"), "{err}");
+		assert!(err.contains("error at 5:15:"), "{err}");
 	}
 
 	#[test]
 	fn source_line_col_maps_across_a_joined_line() {
 		let source = "Nop\nDetailPrint \\\n  \"a\"\nFooBar\n";
 		let (preprocessed, segments) = preprocess_with_map(source);
-		assert_eq!(preprocessed, "Nop\nDetailPrint  \"a\"\nFooBar\n");
+		assert_eq!(preprocessed, "Nop\nDetailPrint \"a\"\nFooBar\n");
 
 		// The joined text before the continuation still maps 1:1.
 		let detail_print = preprocessed.find("DetailPrint").unwrap();

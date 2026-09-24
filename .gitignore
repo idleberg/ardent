@@ -1,10 +1,10 @@
 # build artifacts
+/.build
 /result
 /target
 
 # all things nodejs
 node_modules/
-bun.lock
 package-lock.json
 
 # AI stuff

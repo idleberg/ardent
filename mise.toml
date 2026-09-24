@@ -9,10 +9,7 @@ rust = "latest"
 HK_MISE = 1
 
 [hooks]
-postinstall = "hk install --mise && pnpm install"
-
-[settings]
-node.corepack = true
+postinstall = "hk install --mise && bun install"
 
 [tasks.build]
 description = "Build the Rust formatter"
@@ -20,7 +17,7 @@ run = "cargo build --release"
 
 [tasks.checks]
 description = "Run all checks (formatting, linting)"
-depends = ["format:check", "lint", "test"]
+depends = ["spec:check", "format:check", "lint", "test"]
 
 [tasks.format]
 description = "Format Rust code"
@@ -42,17 +39,25 @@ run = "cargo test"
 description = "Compare Node.js and Rust formatter output on provided input files"
 run = "bun tasks/compare.ts"
 
+[tasks."spec:codegen"]
+description = "Regenerate the lookup tables from the Dent Style Specification"
+run = "bun tasks/codegen.ts"
+
+[tasks."spec:check"]
+description = "Verify the lookup tables are in step with the installed specification"
+run = "bun tasks/codegen.ts --check"
+
 [tasks."docs:dev"]
 description = "Start the documentation dev server (served under /ardent)"
-run = "pnpm --filter web dev"
+run = "bun run --filter web dev"
 
 [tasks."docs:build"]
 description = "Build the documentation site"
-run = "pnpm --filter web build"
+run = "bun run --filter web build"
 
 [tasks."docs:preview"]
 description = "Preview the built documentation site"
-run = "pnpm --filter web preview"
+run = "bun run --filter web preview"
 
 [tasks."docker:build"]
 description = "Build the Docker image"

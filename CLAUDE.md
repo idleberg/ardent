@@ -8,10 +8,11 @@ Opinionated formatter for [NSIS](https://nsis.sourceforge.io/) scripts. Parses N
 - `src/main.rs` — CLI (`ardent format`, `ardent check`) built with clap
 - `src/parser.rs` — PEG grammar (via `peg` crate) producing a CST
 - `src/printer.rs` — CST → formatted NSIS source
-- `src/rules.rs` — block-structure rules (which keywords open/close/continue blocks)
-- `src/canonical_casing.rs` — instruction name → canonical case lookup
-- `src/canonical_includes.rs` — bundled include library macro casing
-- `src/canonical_parameters.rs` — parameter casing lookup
+- `src/rules.rs` — block-structure rules (generated)
+- `src/canonical_casing.rs` — instruction name → canonical case lookup (generated)
+- `src/canonical_includes.rs` — bundled include library macro casing (generated)
+- `src/canonical_parameters.rs` — parameter casing lookup (generated)
+- `src/canonical_variables.rs` — built-in variable, define and language string casing (generated)
 - `tests/` — integration tests with fixture files in `tests/fixtures/`
 - `tasks/compare.ts` — Bun script comparing output against the Node.js predecessor (`@nsis/dent`)
 
@@ -30,6 +31,20 @@ mise run compare -- <files>  # compare against @nsis/dent output
 ```
 
 Pre-commit hooks are managed by hk (auto-formats and lints on commit).
+
+## Dent Style Specification
+
+Ardent implements **Dent style**, defined by the [Dent Style Specification](https://github.com/idleberg/nsis-org/tree/main/packages/dent-spec)
+(`@nsis/dent-spec`). The specification is the authority: where Ardent and a conformance case
+disagree, Ardent is wrong, and a formatting rule change belongs in the specification first.
+
+- The `src/canonical_*.rs` and `src/rules.rs` tables are **generated** from the specification's data
+  files by `mise run spec:codegen` (`tasks/codegen.ts`). Do not edit them by hand — change the
+  specification, release it, then regenerate. `mise run spec:check` fails when they are out of step.
+- `tests/conformance.rs` runs every case the specification ships. It skips with a warning when
+  `@nsis/dent-spec` is not installed; point `DENT_SPEC_DIR` at a local checkout to run it anyway.
+- `tasks/compare.ts` (`mise run compare`) still diffs Ardent against the TypeScript implementation on
+  arbitrary files, which is useful on real-world corpora that the cases do not cover.
 
 ## NSIS Language Reference
 

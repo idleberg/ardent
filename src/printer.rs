@@ -106,6 +106,11 @@ pub fn print(nodes: &[CSTNode], options: &FormatterOptions, eol: &str) -> String
 		}
 	}
 
+	// Nothing to print yields empty output, not a lone line ending (§4).
+	if lines.is_empty() {
+		return String::new();
+	}
+
 	let mut result = lines.join(eol);
 	result.push_str(eol);
 	result
@@ -142,20 +147,19 @@ fn print_comment(
 				let line = line.strip_suffix('\r').unwrap_or(line);
 				if i == 0 {
 					format!("{prefix}/*{line}")
+				} else if i == comment_lines.len() - 1 {
+					format!("{prefix}{line}*/")
+				} else if line.trim().is_empty() {
+					String::new()
 				} else {
-					let stripped = line.trim_start();
-					if i == comment_lines.len() - 1 {
-						format!("{prefix} {stripped}*/")
-					} else {
-						format!("{prefix} {stripped}")
-					}
+					// The parser already made the line relative to the opening `/*`.
+					format!("{prefix}{line}")
 				}
 			})
 			.collect::<Vec<_>>()
 			.join(eol)
 	} else {
-		let marker = comment_marker(style, options);
-		format!("{prefix}{marker} {value}")
+		format!("{prefix}{}", marked_comment(style, value, options))
 	}
 }
 
@@ -580,20 +584,19 @@ fn tokenize_arithmetic(arg: &str) -> Vec<String> {
 }
 
 fn join_with_compact_pipes(args: &[String]) -> String {
-	let mut result = String::new();
+	group_pipes(args).join(" ")
+}
+
+/// Merges `|` and its neighbours into one argument, so wrapping never breaks or spaces them (§10).
+fn group_pipes(args: &[String]) -> Vec<String> {
+	let mut groups: Vec<String> = Vec::new();
 	for (i, arg) in args.iter().enumerate() {
-		if arg == "|" {
-			result.push('|');
-		} else if i > 0 && args[i - 1] == "|" {
-			result.push_str(arg);
-		} else {
-			if !result.is_empty() {
-				result.push(' ');
-			}
-			result.push_str(arg);
+		match groups.last_mut() {
+			Some(last) if arg == "|" || args[i - 1] == "|" => last.push_str(arg),
+			_ => groups.push(arg.clone()),
 		}
 	}
-	result
+	groups
 }
 
 fn print_instruction(
@@ -663,8 +666,17 @@ fn print_instruction(
 }
 
 fn print_trailing_comment(comment: &TrailingComment, options: &FormatterOptions) -> String {
-	let marker = comment_marker(&comment.style, options);
-	format!("{marker} {}", comment.value)
+	marked_comment(&comment.style, &comment.value, options)
+}
+
+/// An empty comment is just its marker, so it leaves no trailing space (§8).
+fn marked_comment(style: &CommentStyle, value: &str, options: &FormatterOptions) -> String {
+	let marker = comment_marker(style, options);
+	if value.is_empty() {
+		marker.to_string()
+	} else {
+		format!("{marker} {value}")
+	}
 }
 
 fn wrap_instruction(
@@ -690,13 +702,12 @@ fn wrap_instruction(
 		format!("{indent}{keyword} {}", join_fn(args))
 	};
 
-	let full_line = match trailing_comment {
-		Some(c) => format!("{single_line} {c}"),
-		None => single_line,
-	};
-
-	if full_line.chars().count() <= options.print_width {
-		return full_line;
+	// A trailing comment does not count toward the width (§10).
+	if single_line.chars().count() <= options.print_width {
+		return match trailing_comment {
+			Some(c) => format!("{single_line} {c}"),
+			None => single_line,
+		};
 	}
 
 	let cont_indent = format!(
@@ -710,7 +721,13 @@ fn wrap_instruction(
 	let mut result_lines: Vec<String> = Vec::new();
 	let mut current = format!("{indent}{keyword}");
 
-	for arg in args {
+	let words = if is_arithmetic {
+		args.to_vec()
+	} else {
+		group_pipes(args)
+	};
+
+	for arg in &words {
 		let candidate = format!("{current} {arg}");
 		if candidate.chars().count() + 2 > options.print_width
 			&& current.chars().count() > indent.chars().count()
@@ -741,6 +758,24 @@ fn is_block_close(node: &CSTNode) -> bool {
 	matches!(node, CSTNode::Instruction { keyword, .. } if CLOSE.contains(&keyword.to_lowercase()))
 }
 
+fn is_mid(node: &CSTNode) -> bool {
+	matches!(node, CSTNode::Instruction { keyword, .. } if MID.contains(&keyword.to_lowercase()))
+}
+
+/// A node after which the next line sits inside a block: an opener, or a `mid` keyword
+/// such as `${Else}`, which opens the next branch (§7.1).
+fn opens_inside(node: &CSTNode) -> bool {
+	is_block_open(node) || is_mid(node)
+}
+
+/// A node that ends the lines above it: a closer, a `mid` keyword, which closes the
+/// previous branch, or a `closeAfter` keyword such as `${Break}` (§7.1).
+fn closes_above(node: &CSTNode) -> bool {
+	is_block_close(node)
+		|| is_mid(node)
+		|| matches!(node, CSTNode::Instruction { keyword, .. } if CLOSE_AFTER.contains(&keyword.to_lowercase()))
+}
+
 fn is_label(node: &CSTNode) -> bool {
 	matches!(node, CSTNode::Label { .. })
 }
@@ -759,7 +794,7 @@ fn wants_blank_between(prev: &CSTNode, node: &CSTNode) -> bool {
 
 	// A chunk that opens right inside another one, or right below its own
 	// comment, stays attached to it.
-	if is_block_open(prev) || matches!(prev, CSTNode::Comment { .. }) {
+	if opens_inside(prev) || matches!(prev, CSTNode::Comment { .. }) {
 		return false;
 	}
 
@@ -809,7 +844,7 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 			if wants_blank_between(prev, node) {
 				result.push(CSTNode::Blank);
 			} else if matches!(node, CSTNode::Comment { .. })
-				&& !is_block_open(prev)
+				&& !opens_inside(prev)
 				&& !matches!(prev, CSTNode::Comment { .. })
 			{
 				let mut j = i + 1;
@@ -821,7 +856,7 @@ fn ensure_blank_around_blocks(nodes: &[CSTNode]) -> Vec<CSTNode> {
 				if j < nodes.len() && comment_opens_chunk(prev, &nodes[j]) {
 					result.push(CSTNode::Blank);
 				}
-			} else if is_block_close(prev) && !is_block_close(node) && !is_block_open(node) {
+			} else if is_block_close(prev) && !closes_above(node) && !is_block_open(node) {
 				result.push(CSTNode::Blank);
 			}
 		}

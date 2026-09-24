@@ -3,8 +3,8 @@ use std::process::Command;
 
 const UNFORMATTED: &str = "Section \"demo\"\n  DetailPrint \"x\"\nSectionEnd\n";
 const FORMATTED: &str = "Section \"demo\"\n\tDetailPrint \"x\"\nSectionEnd\n";
-// `StrStr` is not an NSIS instruction, so this cannot be parsed.
-const UNPARSEABLE: &str = "Section \"demo\"\n\tStrStr $0 \"a\" \"b\"\nSectionEnd\n";
+// The string is never closed, so this cannot be parsed.
+const UNPARSEABLE: &str = "Section \"demo\"\n\tDetailPrint \"x\nSectionEnd\n";
 
 struct Run {
 	stdout: String,
