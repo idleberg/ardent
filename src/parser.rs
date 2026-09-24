@@ -353,7 +353,8 @@ fn is_instruction_keyword(kw: &str) -> bool {
 /// A line that does not start with that exact indentation is dedented fully instead.
 fn rebase_block_comment(value: &str, indent: &str) -> String {
 	value
-		.split('\n')
+		.replace("\r\n", "\n")
+		.split(['\r', '\n'])
 		.enumerate()
 		.map(|(i, line)| match i {
 			0 => line,
@@ -564,6 +565,8 @@ fn preprocess_with_map(input: &str) -> (String, Vec<(usize, usize)>) {
 				Some(j + 1)
 			} else if j + 1 < len && bytes[j] == b'\r' && bytes[j + 1] == b'\n' {
 				Some(j + 2)
+			} else if j < len && bytes[j] == b'\r' {
+				Some(j + 1)
 			} else {
 				None
 			};
@@ -1119,6 +1122,12 @@ mod tests {
 	#[test]
 	fn preprocess_joins_continuation_lf() {
 		let result = preprocess("foo \\\n  bar");
+		assert_eq!(result, "foo bar");
+	}
+
+	#[test]
+	fn preprocess_joins_continuation_lone_cr() {
+		let result = preprocess("foo \\\r  bar");
 		assert_eq!(result, "foo bar");
 	}
 
