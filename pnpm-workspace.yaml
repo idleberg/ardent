@@ -1,7 +1,0 @@
-packages:
-  - "tasks"
-  - "web"
-
-allowBuilds:
-  esbuild: true
-  sharp: true

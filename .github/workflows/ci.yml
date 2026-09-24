@@ -27,6 +27,9 @@ jobs:
       - name: Lint code
         run: mise run lint
 
+      - name: Check spec tables
+        run: mise run spec:check
+
       - name: Run tests
         run: mise run test
 

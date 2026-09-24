@@ -27,9 +27,7 @@ jobs:
       - uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        env:
-          COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
+        run: bun install --frozen-lockfile
 
       - name: Build documentation
         run: mise run docs:build
