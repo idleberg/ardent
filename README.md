@@ -8,7 +8,7 @@
 
 ## Description
 
-Ardent formats NSIS scripts in [Dent style](https://github.com/idleberg/nsis-org/tree/main/packages/dent-spec), conforming to the Dent Style Specification.
+Dent formats NSIS scripts, conforming the [dent-spec](https://github.com/idleberg/nsis-org/tree/main/packages/dent-spec).
 
 The specification defines the style — casing, indentation, blank lines, quoting and wrapping — as prose, data tables and byte-exact conformance cases. Ardent generates its lookup tables from those tables (`mise run spec:codegen`) and runs those cases as tests, so it and [`dent`](https://www.npmjs.org/package/@nsis/dent-cli), the TypeScript implementation, cannot drift apart. Where Ardent and a case disagree, Ardent is wrong.
 
