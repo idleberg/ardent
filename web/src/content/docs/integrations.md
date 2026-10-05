@@ -11,13 +11,13 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 [Visual Studio Code](https://code.visualstudio.com/) is a free, open source AI code editor. It integrates Ardent via the [vscode-nsis](https://marketplace.visualstudio.com/items?itemName=idleberg.nsis) extension. Users of VSCodium, Cursor, Antigravity or Windsurf install it from [Open VSX](https://open-vsx.org/extension/idleberg/nsis) instead.
 
-### Sublime Text
-
-[Sublime Text](https://www.sublimetext.com/) is a powerful text editor for code, markup and prose. It integrates Ardent via the [LSP-nsis](https://packages.sublimetext.com/packages/LSP-nsis) package.
-
 ### Zed
 
 [Zed](https://zed.dev/) is a minimal code editor crafted for speed and collaboration. It integrates Ardent via the [NSIS extension](https://zed.dev/extensions/nsis).
+
+### Sublime Text
+
+[Sublime Text](https://www.sublimetext.com/) is a powerful text editor for code, markup and prose. It integrates Ardent via the [LSP-nsis](https://packages.sublimetext.com/packages/LSP-nsis) package.
 
 ### Neovim
 
@@ -29,7 +29,7 @@ The Ardent formatter is part of the [NSIS language server](https://crates.io/cra
 
 ### Pulsar
 
-[Pulsar](https://pulsar-edit.dev) is a community-led, hyper-hackable text editor formerly known as [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/). It integrates Ardent via the [language-nsis](https://web.pulsar-edit.dev/packages/language-nsis).
+[Pulsar](https://pulsar-edit.dev) is a community-led, hyper-hackable text editor formerly known as [Atom](https://github.blog/news-insights/product-news/sunsetting-atom/). It integrates Ardent via the [language-nsis](https://web.pulsar-edit.dev/packages/language-nsis) package.
 
 ### Nova
 
