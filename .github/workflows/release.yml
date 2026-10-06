@@ -38,6 +38,7 @@ jobs:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             artifact-name: windows-x64
+            installer: true
           - target: aarch64-pc-windows-msvc
             os: ubuntu-latest
             artifact-name: windows-arm64
@@ -109,19 +110,45 @@ jobs:
           7z a "ardent-${{ steps.version.outputs.VERSION }}-${{ matrix.artifact-name }}.zip" \
             "./target/${{ matrix.target }}/release/${BIN}" LICENSE
 
+      - name: Set up Installua
+        if: matrix.installer
+        uses: idleberg/setup-installua@8d5a6fddec67187059f8e785952882f85fcad4ef # v1
+
+      # setup-installua brings NSIS but not EnVar; setup/install.lua uses it to
+      # put INSTDIR on the user's PATH.
+      - name: Install EnVar plugin
+        if: matrix.installer
+        shell: bash
+        run: |
+          curl -sSLo EnVar.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+          7z x EnVar.zip -oEnVar
+          cp EnVar/Plugins/x86-unicode/EnVar.dll "$NSISDIR/Plugins/x86-unicode/"
+
+      # x64 only: the arm64 target builds on a Linux runner with no NSIS, and the
+      # x64 installer would plant the wrong binary. arm64 users take the zip.
+      - name: Build installer
+        if: matrix.installer
+        shell: bash
+        working-directory: setup
+        run: |
+          installua build install.lua \
+            -D VERSION=${{ steps.version.outputs.VERSION }} \
+            -D BINARY=../target/${{ matrix.target }}/release/ardent.exe
+          mv ardent-*-setup.exe "$GITHUB_WORKSPACE/"
+
       # Attested here rather than in `create-release` so the provenance names the job that
       # actually compiled the binary, not the one that collected it. Digests survive the
       # artifact round-trip, so the released zip verifies against this attestation.
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: ardent-*.zip
+          subject-path: ardent-*
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ardent-${{ matrix.artifact-name }}
-          path: ardent-*.zip
+          path: ardent-*
 
   create-release:
     needs: build
@@ -133,13 +160,14 @@ jobs:
           merge-multiple: true
 
       - name: Generate checksums
-        run: sha256sum ardent-*.zip > SHA256SUMS
+        run: sha256sum ardent-*.zip ardent-*-setup.exe > SHA256SUMS
 
       - name: Create release
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           files: |
             ardent-*.zip
+            ardent-*-setup.exe
             SHA256SUMS
 
   publish-to-crates:
