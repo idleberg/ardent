@@ -131,8 +131,10 @@ jobs:
         shell: bash
         working-directory: setup
         run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
           installua build install.lua \
-            -D VERSION=${{ steps.version.outputs.VERSION }} \
+            -D VERSION="$VERSION" \
+            -D PRODUCT="${VERSION%%-*}.0" \
             -D BINARY=../target/${{ matrix.target }}/release/ardent.exe
           mv ardent-*-setup.exe "$GITHUB_WORKSPACE/"
 

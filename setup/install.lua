@@ -3,6 +3,11 @@ local EnVar = plugin "EnVar"
 local APP <const> = "ardent"
 local VERSION <const> = param("VERSION", "dev")
 local BINARY <const> = param("BINARY", "../target/release/ardent.exe")
+-- `VIProductVersion`, which NSIS requires as soon as any version key is set, and
+-- which takes four numbers. It cannot be derived from VERSION here — a `<const>`
+-- folds literals and concatenation only — so CI passes it in. A dev build has no
+-- version, and says so.
+local PRODUCT <const> = param("PRODUCT", "0.0.0.0")
 
 -- Per-user install, so the Add/Remove Programs entry belongs under HKCU. HKLM
 -- would need elevation and would advertise the package to users who cannot run it.
@@ -14,6 +19,7 @@ attributes {
   compressor = "lzma",
   requestExecutionLevel = "user",
   versionInfo = {
+    product = PRODUCT,
     keys = {
       ProductName = APP,
       ProductVersion = VERSION,
