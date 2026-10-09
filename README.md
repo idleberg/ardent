@@ -47,14 +47,14 @@ The binary is at `target/release/ardent`.
 ardent [OPTIONS] [COMMAND]
 
 Commands:
-  format       Format NSIS scripts
-  check        Check if NSIS scripts are formatted correctly
-  completions  Print a shell completion script
+  format  Format NSIS scripts
+  check   Check if NSIS scripts are formatted correctly
 
 Options:
-  -D, --debug    Print debug messages
-  -h, --help     Print help
-  -V, --version  Print version
+  -D, --debug               Print debug messages
+      --completions <SHELL>  Print a shell completion script
+  -h, --help                Print help
+  -V, --version             Print version
 ```
 
 ### Format
@@ -95,19 +95,19 @@ goes is the shell's business, not Ardent's:
 
 ```shell
 # bash — needs bash-completion installed
-ardent completions bash > ~/.local/share/bash-completion/completions/ardent
+ardent --completions bash > ~/.local/share/bash-completion/completions/ardent
 
 # zsh — any directory on $fpath, with compinit enabled
-ardent completions zsh > ~/.zfunc/_ardent
+ardent --completions zsh > ~/.zfunc/_ardent
 
 # fish
-ardent completions fish > ~/.config/fish/completions/ardent.fish
+ardent --completions fish > ~/.config/fish/completions/ardent.fish
 ```
 
 ```powershell
 # PowerShell — appended to the profile, which may not exist yet
 New-Item -ItemType File -Path $PROFILE -Force | Out-Null
-ardent completions powershell | Out-File -Append -Encoding utf8 $PROFILE
+ardent --completions powershell | Out-File -Append -Encoding utf8 $PROFILE
 ```
 
 Re-run it after upgrading Ardent to pick up new commands and options.
