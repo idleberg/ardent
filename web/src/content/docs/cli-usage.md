@@ -12,14 +12,15 @@ The Rust crate for Ardent consists of two parts: the library for use in other Ru
 Once you've completed the [installation](../getting-started/#installation), Ardent should be available in your shell. Running `ardent` without extra arguments will print available sub-commands and flags:
 
 ```text
-Opinionated formatter for NSIS scripts
+🍁 Ardent is an opinionated code formatter for NSIS scripts
 
 Usage: ardent [OPTIONS] [COMMAND]
 
 Commands:
-  format  Format NSIS scripts
-  check   Check if NSIS scripts are formatted correctly
-  help    Print this message or the help of the given subcommand(s)
+  format       Command to format NSIS scripts
+  check        Command to check if NSIS scripts are formatted correctly
+  completions  Command to print a shell completion script
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
   -D, --debug    Print debug messages
@@ -38,6 +39,39 @@ See `ardent format --help` for a list of all options.
 The `check` sub-command will report whether an NSIS script requires formatting. Using the `--write` flag will apply the changes in-place, while the `--diff` flag will visualize the formatting changes.
 
 See `ardent check --help` for a list of all options.
+
+### `completions`
+
+The `completions` sub-command prints a shell completion script to `stdout`, so that pressing <kbd>Tab</kbd> offers Ardent's sub-commands and flags. It accepts `bash`, `elvish`, `fish`, `powershell` or `zsh`.
+
+:::note
+Completion scripts are generated from the command-line interface as it is at the time you run the command. Re-run it after upgrading Ardent, otherwise new sub-commands and flags won't be offered.
+:::
+
+Ardent only prints the script — where it belongs is up to your shell, so redirect it accordingly.
+
+**Powershell**
+
+```powershell
+New-Item -ItemType File -Path $PROFILE -Force | Out-Null
+ardent completions powershell | Out-File -Append -Encoding utf8 $PROFILE
+```
+
+**Bash**
+
+```shell
+# bash, which requires bash-completion to be installed
+ardent completions bash > ~/.local/share/bash-completion/completions/ardent
+```
+
+**Fish**
+
+```shell
+# fish, which needs no further setup
+ardent completions fish > ~/.config/fish/completions/ardent.fish
+```
+
+Start a new shell session for any of the above to take effect.
 
 ## Options
 

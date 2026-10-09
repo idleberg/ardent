@@ -5,6 +5,7 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
+use clap_complete::{Shell, generate};
 use glob::glob;
 
 use ardent::{CommentStyle, EndOfLine, Formatter, FormatterOptions};
@@ -67,6 +68,12 @@ enum Commands {
 
 		#[command(flatten)]
 		formatting: FormattingArgs,
+	},
+
+	#[command(about = "Command to print a shell completion script")]
+	Completions {
+		#[arg(help = "Shell to print a completion script for")]
+		shell: Shell,
 	},
 }
 
@@ -547,6 +554,24 @@ fn main() -> ExitCode {
 			}
 			run_check(&files, write, diff, &formatting, cli.debug)
 		}
+		// To stdout, for the user to redirect where their shell wants it. Writing the
+		// file here would mean four shells with four different rules, and a script that
+		// goes stale on the next upgrade with nothing to notice it.
+		Some(Commands::Completions { shell }) => {
+			// Buffered, then written in one go: `generate` unwraps its writes, so handing it
+			// stdout directly turns `ardent completions zsh | head` into a panic.
+			let mut script = Vec::new();
+			generate(shell, &mut Cli::command(), "ardent", &mut script);
+
+			match io::stdout().write_all(&script) {
+				Err(error) if error.kind() == io::ErrorKind::BrokenPipe => ExitCode::SUCCESS,
+				Err(error) => {
+					logger_error!("{error}");
+					ExitCode::FAILURE
+				}
+				Ok(()) => ExitCode::SUCCESS,
+			}
+		}
 		None => {
 			Cli::command().print_help().unwrap();
 			ExitCode::from(2)
@@ -558,6 +583,18 @@ fn main() -> ExitCode {
 mod tests {
 	use super::*;
 	use std::fs;
+
+	#[test]
+	fn completions_name_the_binary_and_every_subcommand() {
+		let mut script = Vec::new();
+		generate(Shell::Bash, &mut Cli::command(), "ardent", &mut script);
+		let script = String::from_utf8(script).unwrap();
+
+		assert!(script.contains("ardent"));
+		for subcommand in ["format", "check", "completions"] {
+			assert!(script.contains(subcommand), "{subcommand} is missing");
+		}
+	}
 
 	#[test]
 	fn check_keeping_bom_restores_the_mark() {

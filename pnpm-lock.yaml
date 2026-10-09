@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@nsis/dent-spec':
+        specifier: 0.1.0
+        version: 0.1.0
+
+packages:
+
+  '@nsis/dent-spec@0.1.0':
+    resolution: {integrity: sha512-x1sIkYZeZlAeASI1EwE32PVWh2d4OJIMH1i4JJgLqPDbTXR8V3Ws+HIqQxaUiRL+7S8FATh+RSVlN91LaaTSeQ==}
+    engines: {node: '>=20.0.0'}
+
+snapshots:
+
+  '@nsis/dent-spec@0.1.0': {}
