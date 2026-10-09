@@ -185,6 +185,13 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
+  docker:
+    needs: [create-release, publish-to-crates]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+
   # publish-to-winget:
   #   needs: create-release
   #   runs-on: ubuntu-latest
