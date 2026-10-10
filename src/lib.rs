@@ -158,7 +158,7 @@ impl Formatter {
 		let nodes = parse(input)?;
 		let eol = self.detect_eol(input);
 
-		Ok(print(&nodes, &self.options, &eol))
+		Ok(print(&nodes, &self.options, eol))
 	}
 
 	/// Checks whether an NSIS script is already formatted.
@@ -167,25 +167,21 @@ impl Formatter {
 	/// `Ok(Some(formatted))` with the formatted version if it differs.
 	pub fn check(&self, input: &str) -> Result<Option<String>, String> {
 		let formatted = self.format(input)?;
-		if formatted == input {
-			Ok(None)
-		} else {
-			Ok(Some(formatted))
-		}
+		Ok((formatted != input).then_some(formatted))
 	}
 
-	fn detect_eol(&self, input: &str) -> String {
+	fn detect_eol(&self, input: &str) -> &'static str {
 		if let Some(ref eol) = self.options.end_of_line {
 			return match eol {
-				EndOfLine::Crlf => "\r\n".to_string(),
-				EndOfLine::Lf => "\n".to_string(),
+				EndOfLine::Crlf => "\r\n",
+				EndOfLine::Lf => "\n",
 			};
 		}
 
 		if input.contains('\n') && !input.contains("\r\n") {
-			"\n".to_string()
+			"\n"
 		} else {
-			"\r\n".to_string()
+			"\r\n"
 		}
 	}
 }

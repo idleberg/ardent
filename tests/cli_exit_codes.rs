@@ -88,3 +88,16 @@ fn check_reports_an_error_over_formatting_issues() {
 
 	assert_eq!(result.code, Some(2));
 }
+
+#[cfg(unix)]
+#[test]
+fn check_skips_a_dangling_symlink_instead_of_failing() {
+	let dir = tempfile::tempdir().unwrap();
+	fs::write(dir.path().join("good.nsi"), FORMATTED).unwrap();
+	std::os::unix::fs::symlink(dir.path().join("gone.nsi"), dir.path().join("link.nsi")).unwrap();
+
+	// The wildcard matches the dangling link too; it is a warning, not a read error.
+	let result = run("check", &[&format!("{}/*.nsi", dir.path().display())]);
+
+	assert_eq!(result.code, Some(0));
+}

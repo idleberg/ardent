@@ -73,20 +73,21 @@ pub fn dim(value: &dyn fmt::Display) -> String {
 	format!("\x1b[2m{value}\x1b[0m")
 }
 
-macro_rules! logger_debug {
-    ($($arg:tt)*) => {
-        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
-            $crate::logger::log($crate::logger::Level::Debug, format_args!($($arg)*))
+/// Logs at `$level` unless `--silent` is set. Warnings and errors bypass it.
+macro_rules! logger_unless_silent {
+    ($level:ident, $($arg:tt)*) => {
+        if !$crate::logger::is_silent() {
+            $crate::logger::log($crate::logger::Level::$level, format_args!($($arg)*))
         }
     };
 }
 
+macro_rules! logger_debug {
+    ($($arg:tt)*) => { $crate::logger::logger_unless_silent!(Debug, $($arg)*) };
+}
+
 macro_rules! logger_info {
-    ($($arg:tt)*) => {
-        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
-            $crate::logger::log($crate::logger::Level::Info, format_args!($($arg)*))
-        }
-    };
+    ($($arg:tt)*) => { $crate::logger::logger_unless_silent!(Info, $($arg)*) };
 }
 
 macro_rules! logger_warn {
@@ -98,19 +99,11 @@ macro_rules! logger_error {
 }
 
 macro_rules! logger_success {
-    ($($arg:tt)*) => {
-        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
-            $crate::logger::log($crate::logger::Level::Success, format_args!($($arg)*))
-        }
-    };
+    ($($arg:tt)*) => { $crate::logger::logger_unless_silent!(Success, $($arg)*) };
 }
 
 macro_rules! logger_start {
-    ($($arg:tt)*) => {
-        if !$crate::logger::SILENT.load(::std::sync::atomic::Ordering::Relaxed) {
-            $crate::logger::log($crate::logger::Level::Start, format_args!($($arg)*))
-        }
-    };
+    ($($arg:tt)*) => { $crate::logger::logger_unless_silent!(Start, $($arg)*) };
 }
 
 pub(crate) use logger_debug;
@@ -118,4 +111,5 @@ pub(crate) use logger_error;
 pub(crate) use logger_info;
 pub(crate) use logger_start;
 pub(crate) use logger_success;
+pub(crate) use logger_unless_silent;
 pub(crate) use logger_warn;

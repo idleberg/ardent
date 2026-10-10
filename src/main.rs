@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{self, IsTerminal, Read, Write};
+use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::Instant;
@@ -179,11 +179,7 @@ fn resolve_files(patterns: &[String]) -> Vec<PathBuf> {
 
 		for pat in &effective_patterns {
 			match glob(pat) {
-				Ok(paths) => {
-					for entry in paths.flatten() {
-						files.push(entry);
-					}
-				}
+				Ok(paths) => files.extend(paths.flatten()),
 				Err(e) => {
 					logger_warn!("invalid glob pattern '{}': {}", pat, e);
 				}
@@ -199,14 +195,8 @@ fn is_nsis_file(path: &Path) -> bool {
 		.is_some_and(|ext| ext == "nsi" || ext == "nsh")
 }
 
-fn has_stdin() -> bool {
-	!io::stdin().is_terminal()
-}
-
-fn read_stdin() -> io::Result<String> {
-	let mut buf = String::new();
-	io::stdin().read_to_string(&mut buf)?;
-	Ok(buf)
+fn file_noun(count: usize) -> &'static str {
+	if count == 1 { "file" } else { "files" }
 }
 
 fn init_formatter(
@@ -223,7 +213,7 @@ fn init_formatter(
 		logger_warn!("the \"indent-size\" option is ignored when \"use-spaces\" is not set.");
 	}
 
-	if patterns.is_empty() && !has_stdin() {
+	if patterns.is_empty() && io::stdin().is_terminal() {
 		Cli::command()
 			.find_subcommand_mut(subcommand)
 			.unwrap()
@@ -251,7 +241,7 @@ fn check_keeping_bom(formatter: &Formatter, contents: &str) -> Result<Option<Str
 }
 
 fn format_stdin(formatter: &Formatter) -> Result<(String, Option<String>), ExitCode> {
-	let raw_contents = read_stdin().map_err(|e| {
+	let raw_contents = io::read_to_string(io::stdin()).map_err(|e| {
 		logger_error!("reading stdin: {e}");
 		ExitCode::from(2)
 	})?;
@@ -278,6 +268,8 @@ fn for_each_file(
 			continue;
 		}
 
+		// Not dead: a wildcard glob also yields dangling symlinks, which are skipped rather than
+		// counted as a failure.
 		if !file.exists() {
 			logger_warn!("{} does not exist, skipping.", blue(&file.display()));
 			continue;
@@ -337,11 +329,7 @@ fn run_format(
 	}
 
 	if write {
-		logger_start!(
-			"Formatting {} {}...",
-			files.len(),
-			if files.len() == 1 { "file" } else { "files" }
-		);
+		logger_start!("Formatting {} {}...", files.len(), file_noun(files.len()));
 	}
 
 	let outer_start = Instant::now();
@@ -395,7 +383,7 @@ fn run_format(
 				"Formatted {} of {} {}.",
 				num_formatted,
 				total,
-				if total == 1 { "file" } else { "files" }
+				file_noun(total)
 			)
 		};
 		logger_success!("Completed in {}ms. {}", outer_duration, summary);
@@ -457,11 +445,7 @@ fn run_check(
 		return ExitCode::from(2);
 	}
 
-	logger_start!(
-		"Checking {} {}...",
-		files.len(),
-		if files.len() == 1 { "file" } else { "files" }
-	);
+	logger_start!("Checking {} {}...", files.len(), file_noun(files.len()));
 
 	let outer_start = Instant::now();
 	let mut num_issues: usize = 0;
@@ -509,17 +493,13 @@ fn run_check(
 	let outer_duration = outer_start.elapsed().as_millis();
 	let total = num_issues + num_unchanged;
 	let summary = if num_issues == 0 {
-		format!(
-			"All {} {} formatted correctly.",
-			total,
-			if total == 1 { "file" } else { "files" }
-		)
+		format!("All {} {} formatted correctly.", total, file_noun(total))
 	} else {
 		format!(
 			"Found formatting issues in {} of {} {}.",
 			num_issues,
 			total,
-			if total == 1 { "file" } else { "files" }
+			file_noun(total)
 		)
 	};
 	logger_success!("Completed in {}ms. {}", outer_duration, summary);

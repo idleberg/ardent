@@ -55,25 +55,15 @@ pub fn print_diff(label: Option<&str>, original: &str, formatted: &str) {
 		return;
 	}
 
-	if !io::stdout().is_terminal() {
-		println!("{}", lines.join("\n"));
-		return;
-	}
-
+	let color = io::stdout().is_terminal();
 	let header_lines = if label.is_some() { 2 } else { 0 };
-	let painted: Vec<String> = lines
-		.iter()
-		.enumerate()
-		.map(|(index, line)| {
-			if index < header_lines {
-				format!("\x1b[1m{line}\x1b[0m")
-			} else {
-				colorize(line)
-			}
-		})
-		.collect();
-
-	println!("{}", painted.join("\n"));
+	for (index, line) in lines.iter().enumerate() {
+		match (color, index < header_lines) {
+			(false, _) => println!("{line}"),
+			(true, true) => println!("\x1b[1m{line}\x1b[0m"),
+			(true, false) => println!("{}", colorize(line)),
+		}
+	}
 }
 
 #[cfg(test)]
