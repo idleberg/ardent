@@ -46,6 +46,8 @@ The `--completions` flag prints a shell completion script to `stdout`, so that p
 
 :::note
 Completion scripts are generated from the command-line interface as it is at the time you run the command. Re-run it after upgrading Ardent, otherwise new sub-commands and flags won't be offered.
+
+Homebrew users will get the completions by default.
 :::
 
 Ardent only prints the script — where it belongs is up to your shell, so redirect it accordingly.
