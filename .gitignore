@@ -6,6 +6,7 @@
 # all things nodejs
 node_modules/
 package-lock.json
+pnpm-lock.yaml
 
 # AI stuff
 !.claude/settings.json
