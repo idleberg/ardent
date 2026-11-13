@@ -7,6 +7,10 @@ description: A guide to get started by setting up Ardent.
 
 Ardent can be installed from several sources. Pick the one you're most familiar with.
 
+### GitHub
+
+Download the [latest release](https://github.com/idleberg/ardent/releases/latest) as Windows installer or binary for your preferred operating system.
+
 ### Winget
 
 Microsoft ships [Winget](https://learn.microsoft.com/windows/package-manager/winget/) with Windows 11, Windows 10 (version 1809 and later), and Windows Server 2025. That makes it the ideal candidate to install Ardent on Windows.
