@@ -9,7 +9,7 @@ Ardent can be installed from several sources. Pick the one you're most familiar 
 
 ### GitHub
 
-Download the [latest release](https://github.com/idleberg/ardent/releases/latest) as Windows installer or binary for your preferred operating system.
+Download the [latest release](https://github.com/idleberg/ardent/releases/latest) as Windows installer or standalone binary for your preferred operating system.
 
 ### Winget
 
